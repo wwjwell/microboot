@@ -159,3 +159,18 @@ public class BatchCommndTest {
     }
 }
 ```
+* 上述batch/run返回结果
+```json
+{
+  "t2": {
+    "gaga": 1491035540912,
+    "Hello": "这是一"
+  },
+  "t1": {
+    "b": 1491035539497,
+    "age": 18,
+    "name": "auto name,xiaowang",
+    "a": "我的家"
+  }
+}
+```
