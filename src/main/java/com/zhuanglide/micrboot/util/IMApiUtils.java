@@ -28,7 +28,7 @@ public class IMApiUtils {
      */
     public static void fillParamsMap(FullHttpRequest request, HttpRequest context) {
         Map<String, List<String>> requestParamsMap = new HashMap();
-        Map<String,FileUpload> requestFiles = new HashMap<>();
+        Map<String,FileUpload> requestFiles = new HashMap<String,FileUpload>();
         QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri(),CharsetUtil.UTF_8);
         Map<String, List<String>> uriAttributes = decoderQuery.parameters();
         for (Map.Entry<String, List<String>> attr : uriAttributes.entrySet()) {
@@ -46,7 +46,7 @@ public class IMApiUtils {
                         String value = attribute.getValue();
                         List<String> valueList = requestParamsMap.get(name);
                         if(null == valueList) {
-                            valueList = new ArrayList<>();
+                            valueList = new ArrayList<String>();
                             requestParamsMap.put(name, valueList);
                         }
                         valueList.add(value);
@@ -73,7 +73,7 @@ public class IMApiUtils {
      * @param context
      */
     public static void fillCookies(FullHttpRequest request, HttpRequest context) {
-        Map<String,Cookie> cookies = new HashMap<>();
+        Map<String,Cookie> cookies = new HashMap<String,Cookie>();
         String value = request.headers().get("Cookie");
         if (null != value && value.length()>0){
             for (Cookie cookie : ServerCookieDecoder.STRICT.decode(value)) {

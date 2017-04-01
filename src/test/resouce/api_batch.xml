@@ -10,7 +10,7 @@
     <context:component-scan base-package="com.zhuanglide.micrboot.test.**">
         <context:include-filter type="annotation" expression="com.zhuanglide.micrboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
-    <bean name="server" class="com.zhuanglide.micrboot.Server">
+    <bean name="batchServer" class="com.zhuanglide.micrboot.Server">
         <property name="port" value="8080"/>
     </bean>
 

@@ -309,7 +309,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                             apiCommandMapping.setParameterTypes(method.getParameterTypes());
                             Map<ApiMethod.RequestMethod, ApiCommandMapping> requestMethodMap = cacheCommandMap.get(apiCommandMapping.getCommand());
                             if (requestMethodMap == null) {
-                                requestMethodMap = new HashMap<>();
+                                requestMethodMap = new HashMap<ApiMethod.RequestMethod, ApiCommandMapping>();
                             }
                             requestMethodMap.put(apiMethod.method(), apiCommandMapping);
                             cacheCommandMap.put(apiCommandMapping.getCommand(), requestMethodMap);
