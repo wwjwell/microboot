@@ -197,7 +197,7 @@ public class BatchCommndTest {
     }
 }
 ```
-* 上述batch/run返回结果
+* 上述batch/run返回结果 http://localhost:8080/batch/run
 ```json
 {
   "t2": {
