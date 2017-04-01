@@ -1,5 +1,23 @@
 # 类springMVC的轻量级HTTP服务框架，使用NETTY作为服务端，适用于后端纯接口服务器，尤其是APP的服务端，支持接口合并功能
-
+    基于netty高性能网络框架
+    设计思想基于springMVC，用法也是springMVC的简化版（只不过注解不一样，也更简陋，不过对于后端接口服务，基本能满足所有偶需要）
+    没有使用j2ee的规范，所以view层是无法对jsp渲染的，现在也只做了JSON 和String 两种，后续会加上freemark 和静态资源，
+    
+### 为什么写micrboot 
+#### springBoot越来越流行的今天，为什么要写micrboot？
+- 1、后端的纯接口，只是http的request 和response 交互，不涉及jsp等模板，j2ee的规范在这方面不简洁
+- 2、微服务越来越多的，springBoot优势越来越大，但是原则上还是没有脱离web容器，而一个简单的http server 可能更是一种换汤换药的方式
+- 3、多接口的合并。（例：APP跟后端服务的http调用，这样可能省时、省流量。）
+    
+* TIPS：这一版是还没有经过线上的考验
+    
+    但是：我曾经写过micrboot的前一版，暂且叫 first_micrboot，自测在4核8G的虚拟机上，最简单的ECHO接口，QPS能到1万/秒，
+    并且这一版(first_micrboot)在正式生产上稳定运行，4台上述配置虚拟机，带业务的接口30万/分的量线上请求，平稳支撑。
+    
+    micrboot现在只是一个架子，还没有在正式环境中运行过，甚至完整的测试过，有任何问题，请发issue
+    
+    如果有一天，能干掉springBoot，那就太好了。。。
+    
 ## 特点
 * 类springMVC架构
 * netty网络框架作为服务，剔除了web容器
