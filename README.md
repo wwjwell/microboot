@@ -1,6 +1,6 @@
-#类springMVC的轻量级HTTP服务框架，使用NETTY作为服务端，适用于后端纯接口服务器，尤其是APP的服务端，支持接口合并功能
+# 类springMVC的轻量级HTTP服务框架，使用NETTY作为服务端，适用于后端纯接口服务器，尤其是APP的服务端，支持接口合并功能
 
-##特点
+## 特点
 * 类springMVC架构
 * netty网络框架作为服务，剔除了web容器
 * 支持拦截器、多接口合并、目前支持了json view 和纯string view，支持文件上传下载
