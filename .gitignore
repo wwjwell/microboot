@@ -8,7 +8,7 @@
 *.iml
 *.iws
 /out/
-/src/test
+#/src/test
 # Mac
 .DS_Store
 

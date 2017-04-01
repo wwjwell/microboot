@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="classpath*:*.properties" ignore-unresolvable="true"/>
+    <context:annotation-config/>
+    <context:component-scan base-package="com.zhuanglide.micrboot.test.**">
+        <context:include-filter type="annotation" expression="com.zhuanglide.micrboot.mvc.annotation.ApiCommand"/>
+    </context:component-scan>
+    <bean name="server" class="com.zhuanglide.micrboot.Server">
+        <property name="port" value="8080"/>
+    </bean>
+
+    <!-- jsonView default -->
+    <bean class="com.zhuanglide.micrboot.mvc.resolver.view.JsonViewResolver">
+        <property name="viewName" value="jsonView"/>
+        <property name="order" value="1"/>
+    </bean>
+
+    <bean class="com.zhuanglide.micrboot.mvc.resolver.view.StringViewResolver">
+    </bean>
+
+    <!-- access logger-->
+    <bean class="com.zhuanglide.micrboot.mvc.interceptor.AccessInterceptor">
+        <property name="accessLoggerName" value="access"/>
+    </bean>
+
+    <bean class="com.zhuanglide.micrboot.test.TestInterceptor">
+        <property name="order" value="1"/>
+    </bean>
+
+    <bean class="com.zhuanglide.micrboot.test.TestInterceptor2">
+        <property name="order" value="2"/>
+    </bean>
+</beans>
