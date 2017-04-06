@@ -9,6 +9,9 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -69,7 +72,13 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }else{
             fullHttpResponse = response.getHttpResponse();
         }
-        ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+
+        if(isKeepAlive(fullRequest)) {
+            fullHttpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+            ctx.writeAndFlush(fullHttpResponse);
+        }else{
+            ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+        }
     }
 
 
@@ -100,5 +109,8 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         this.context = applicationContext;
     }
 
+    private boolean isKeepAlive(HttpRequest request){
+        return HttpHeaders.isKeepAlive(request);
+    }
 
 }

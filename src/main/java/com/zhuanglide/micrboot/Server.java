@@ -14,7 +14,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -36,10 +36,10 @@ public class Server implements ApplicationContextAware,InitializingBean {
     private int port;
     //系统处理线程数，默认为当前CPU的核心数的2倍
     private int threadNum = Runtime.getRuntime().availableProcessors() * 2;
-    private int idleTimeOut = 30; //超时时间
     private int bossThreads = threadNum ; //netty boss 线程
     private int workThreads =  2 * bossThreads; //netty work线程
-    private int maxLength = 1024*1024*64; //http报文最大长度
+    private int maxLength = 65536; //http报文最大长度
+    private boolean useChunked = false;
     private ApplicationContext context;
     private HttpSimpleChannelHandle httpSimpleChannelHandle;
     private EventLoopGroup bossGroup;
@@ -66,13 +66,15 @@ public class Server implements ApplicationContextAware,InitializingBean {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new IdleStateHandler(idleTimeOut, idleTimeOut, idleTimeOut));
                             ch.pipeline().addLast(new HttpServerCodec());
                             ch.pipeline().addLast(new HttpObjectAggregator(maxLength));
+                            if(isUseChunked()) {//是否起用文件的大数据流
+                                ch.pipeline().addLast(new ChunkedWriteHandler());
+                            }
                             ch.pipeline().addLast(httpSimpleChannelHandle);
                         }
                     }).option(ChannelOption.SO_BACKLOG, 128)
-                    .option(ChannelOption.TCP_NODELAY,true)
+                    .childOption(ChannelOption.TCP_NODELAY,true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             logger.info("server start at port {}",port);
             ChannelFuture f = b.bind(port).sync();
@@ -142,6 +144,13 @@ public class Server implements ApplicationContextAware,InitializingBean {
         return workThreads;
     }
 
+    public boolean isUseChunked() {
+        return useChunked;
+    }
+
+    public void setUseChunked(boolean useChunked) {
+        this.useChunked = useChunked;
+    }
 
     private boolean epollAvailable(){
         return useEpoll && Epoll.isAvailable();
