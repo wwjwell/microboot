@@ -44,6 +44,15 @@
 * 支持拦截器、多接口合并、目前支持了json view 和纯string view，支持文件上传下载
     
 ## 怎么启动
+* maven配置
+````xml
+    <dependency>
+      <groupId>com.zhuanglide</groupId>
+      <artifactId>micrboot</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+````
 * 设置spring配置文件
 
 具体可以参照test/resource/api.xml
