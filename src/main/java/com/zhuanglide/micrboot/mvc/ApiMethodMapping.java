@@ -9,9 +9,9 @@ import java.util.Map;
 /**
  * ApiMapping包装
  */
-public class ApiCommandMapping {
+public class ApiMethodMapping {
 
-    private String command;
+    private String url;
 
     private Object bean;
 
@@ -27,12 +27,12 @@ public class ApiCommandMapping {
 
     private Annotation[][] paramAnnotations;
 
-    public String getCommand() {
-        return command;
+    public String getUrl() {
+        return url;
     }
 
-    public void setCommand(String command) {
-        this.command = command;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public void setBean(Object bean) {

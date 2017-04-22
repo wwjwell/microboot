@@ -1,8 +1,8 @@
 package com.zhuanglide.micrboot.mvc.interceptor;
 
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
-import com.zhuanglide.micrboot.mvc.ApiCommandMapping;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
+import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -24,13 +24,13 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     public final static String ATTR_REQ_SYS_PARAMS = "REQ_SYS_PARAMS";
 
     @Override
-    public boolean preDispatch(HttpRequest request, HttpResponse response) {
+    public boolean preDispatch(HttpContextRequest request, HttpContextResponse response) {
         request.addAttachment(ATTR_REQ_START_TIME, System.currentTimeMillis());
         return true;
     }
 
     @Override
-    public void postHandler(ApiCommandMapping mapping, HttpRequest request, HttpResponse response){
+    public void postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response){
         StringBuffer params = new StringBuffer();
         if (null != request.getRequestParamsMap() && !request.getRequestParamsMap().isEmpty()) {
             for (Map.Entry<String, List<String>> paramEntry : request.getRequestParamsMap().entrySet()) {
@@ -43,7 +43,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     }
 
     @Override
-    public void afterHandle(ApiCommandMapping mapping, Object modelView, HttpRequest request, HttpResponse response, Throwable throwable) {
+    public void afterHandle(ApiMethodMapping mapping, Object modelView, HttpContextRequest request, HttpContextResponse response, Throwable throwable) {
         try {
             long startTime = (Long) request.getAttachment(ATTR_REQ_START_TIME);
             String params = (String) request.getAttachment(ATTR_REQ_SYS_PARAMS);
@@ -59,7 +59,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
         }
     }
 
-    private String headers2str(HttpRequest request) {
+    private String headers2str(HttpContextRequest request) {
         StringBuffer headerString = new StringBuffer();
         if (null != request.getHeaders()) {
             for (String s : request.getHeaders().names()) {

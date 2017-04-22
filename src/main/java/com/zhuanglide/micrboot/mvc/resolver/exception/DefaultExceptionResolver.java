@@ -1,8 +1,8 @@
 package com.zhuanglide.micrboot.mvc.resolver.exception;
 
-import com.zhuanglide.micrboot.mvc.ApiCommandMapping;
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
+import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.resolver.ExceptionResolver;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ import org.springframework.core.Ordered;
 public class DefaultExceptionResolver implements ExceptionResolver {
     private Logger logger = LoggerFactory.getLogger(DefaultExceptionResolver.class);
     @Override
-    public void resolveException(ApiCommandMapping mapping, HttpRequest request, HttpResponse response,Throwable ex) {
+    public void resolveException(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response,Throwable ex) {
         logger.error("", ex);
         response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
     }

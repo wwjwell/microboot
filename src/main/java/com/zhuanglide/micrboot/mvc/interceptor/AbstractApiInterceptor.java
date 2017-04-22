@@ -1,8 +1,8 @@
 package com.zhuanglide.micrboot.mvc.interceptor;
 
-import com.zhuanglide.micrboot.mvc.ApiCommandMapping;
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
+import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import org.springframework.core.Ordered;
 
 /**
@@ -11,16 +11,16 @@ import org.springframework.core.Ordered;
 public abstract class AbstractApiInterceptor implements ApiInterceptor,Ordered {
     protected int order = Ordered.LOWEST_PRECEDENCE + 100;
     @Override
-    public boolean preDispatch(HttpRequest request, HttpResponse response) {
+    public boolean preDispatch(HttpContextRequest request, HttpContextResponse response) {
         return true;
     }
 
     @Override
-    public void postHandler(ApiCommandMapping mapping, HttpRequest request, HttpResponse response) {
+    public void postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response) {
     }
 
     @Override
-    public void afterHandle(ApiCommandMapping mapping, Object modelView, HttpRequest request, HttpResponse response, Throwable throwable) {
+    public void afterHandle(ApiMethodMapping mapping, Object modelView, HttpContextRequest request, HttpContextResponse response, Throwable throwable) {
 
     }
 

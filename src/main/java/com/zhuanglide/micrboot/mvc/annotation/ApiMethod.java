@@ -15,9 +15,6 @@ public @interface ApiMethod {
         RequestMethod(String methodType) {
             this.methodType = methodType;
         }
-        public String getMethodType() {
-            return this.methodType;
-        }
         public boolean equals(String method) {
             return method.equalsIgnoreCase(methodType);
         }

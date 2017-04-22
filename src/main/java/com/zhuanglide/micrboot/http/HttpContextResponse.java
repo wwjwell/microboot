@@ -18,12 +18,11 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 /**
  * Created by wwj on 17/3/2.
  */
-public class HttpResponse{
+public class HttpContextResponse {
     private FullHttpResponse httpResponse;
-    private Map<String, String> header = new HashMap();
     private Charset charset;
     private String content;
-    public HttpResponse(HttpVersion version, HttpResponseStatus status, Charset charset){
+    public HttpContextResponse(HttpVersion version, HttpResponseStatus status, Charset charset){
         httpResponse = new DefaultFullHttpResponse(version, status);
         this.charset = charset;
     }

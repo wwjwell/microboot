@@ -1,7 +1,7 @@
 package com.zhuanglide.micrboot.mvc.resolver;
 
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ModelAndView;
 import org.springframework.core.Ordered;
 
@@ -24,7 +24,7 @@ public abstract class ViewResolver implements Ordered {
      * @param response
      * @return
      */
-    public abstract void render(ModelAndView mv, HttpRequest request, HttpResponse response) throws Exception;
+    public abstract void render(ModelAndView mv, HttpContextRequest request, HttpContextResponse response) throws Exception;
 
     @Override
     public int getOrder() {

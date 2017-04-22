@@ -1,7 +1,7 @@
 package com.zhuanglide.micrboot.mvc.resolver.view;
 
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ModelAndView;
 import com.zhuanglide.micrboot.mvc.resolver.ViewResolver;
 
@@ -28,7 +28,7 @@ public class StringViewResolver extends ViewResolver {
     }
 
     @Override
-    public void render(ModelAndView mv, HttpRequest request, HttpResponse response) throws Exception {
+    public void render(ModelAndView mv, HttpContextRequest request, HttpContextResponse response) throws Exception {
         response.setContent((String) mv.getResult());
     }
 }

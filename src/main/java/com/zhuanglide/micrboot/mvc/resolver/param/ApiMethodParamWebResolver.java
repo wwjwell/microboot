@@ -2,8 +2,8 @@ package com.zhuanglide.micrboot.mvc.resolver.param;
 
 import com.zhuanglide.micrboot.mvc.annotation.ApiParam;
 import com.zhuanglide.micrboot.mvc.ApiMethodParam;
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.FileUpload;
@@ -16,8 +16,8 @@ import java.util.Set;
 public class ApiMethodParamWebResolver implements ApiMethodParamResolver {
 
     private static final Set<Class> BASIC_TYPE_CLASS = new HashSet<Class>(){{
-        add(HttpRequest.class);
-        add(HttpResponse.class);
+        add(HttpContextRequest.class);
+        add(HttpContextResponse.class);
         add(FileUpload.class);
         add(Cookie.class);
     }};
@@ -27,7 +27,7 @@ public class ApiMethodParamWebResolver implements ApiMethodParamResolver {
         return BASIC_TYPE_CLASS.contains(apiMethodParam.getParamType());
     }
 
-    public Object getParamObject(ApiMethodParam apiMethodParam, HttpRequest request,HttpResponse response) {
+    public Object getParamObject(ApiMethodParam apiMethodParam, HttpContextRequest request,HttpContextResponse response) {
         if (support(apiMethodParam)) {
             Annotation[] paramAnnotations = apiMethodParam.getParamAnnotations();
             ApiParam apiParamAnnotation = null;
@@ -45,9 +45,9 @@ public class ApiMethodParamWebResolver implements ApiMethodParamResolver {
 
             Type type = apiMethodParam.getParamType();
 
-            if (type.equals(HttpRequest.class)) {
+            if (type.equals(HttpContextRequest.class)) {
                 return request;
-            } else if (type.equals(HttpResponse.class)) {
+            } else if (type.equals(HttpContextResponse.class)) {
                 return response;
             }
             //文件上传

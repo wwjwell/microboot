@@ -1,8 +1,8 @@
 package com.zhuanglide.micrboot.mvc.interceptor;
 
-import com.zhuanglide.micrboot.mvc.ApiCommandMapping;
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
+import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import org.springframework.core.Ordered;
 
 /**
@@ -16,7 +16,7 @@ public interface ApiInterceptor extends Ordered{
      * @param response
      * @return
      */
-    boolean preDispatch(HttpRequest request, HttpResponse response);
+    boolean preDispatch(HttpContextRequest request, HttpContextResponse response);
 
     /**
      * 作用于invoke之前，可以更改请求参数的值，
@@ -24,7 +24,7 @@ public interface ApiInterceptor extends Ordered{
      * @param request
      * @param response
      */
-    void postHandler(ApiCommandMapping mapping, HttpRequest request, HttpResponse response);
+    void postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response);
 
     /**
      * 作用于invoke之后，可以更改返回值
@@ -34,6 +34,6 @@ public interface ApiInterceptor extends Ordered{
      * @param response
      * @param throwable
      */
-    void afterHandle(ApiCommandMapping mapping, Object modelView, HttpRequest request, HttpResponse response, Throwable throwable);
+    void afterHandle(ApiMethodMapping mapping, Object modelView, HttpContextRequest request, HttpContextResponse response, Throwable throwable);
 
 }

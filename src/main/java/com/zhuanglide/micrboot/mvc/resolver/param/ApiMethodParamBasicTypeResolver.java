@@ -1,7 +1,7 @@
 package com.zhuanglide.micrboot.mvc.resolver.param;
 
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiMethodParam;
 import com.zhuanglide.micrboot.mvc.annotation.ApiParam;
 import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
@@ -42,7 +42,7 @@ public class ApiMethodParamBasicTypeResolver implements ApiMethodParamResolver {
         return BASIC_TYPE_CLASS.contains(apiMethodParam.getParamType());
     }
 
-    public Object getParamObject(ApiMethodParam apiMethodParam, HttpRequest request, HttpResponse response) throws Exception {
+    public Object getParamObject(ApiMethodParam apiMethodParam, HttpContextRequest request, HttpContextResponse response) throws Exception {
         if (support(apiMethodParam)) {
             Type type = apiMethodParam.getParamType();
 

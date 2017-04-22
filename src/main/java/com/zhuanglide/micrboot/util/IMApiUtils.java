@@ -1,6 +1,6 @@
 package com.zhuanglide.micrboot.util;
 
-import com.zhuanglide.micrboot.http.HttpRequest;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -26,7 +26,7 @@ public class IMApiUtils {
      * @param request
      * @return
      */
-    public static void fillParamsMap(FullHttpRequest request, HttpRequest context) {
+    public static void fillParamsMap(FullHttpRequest request, HttpContextRequest context) {
         Map<String, List<String>> requestParamsMap = new HashMap();
         Map<String,FileUpload> requestFiles = new HashMap<String,FileUpload>();
         QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri(),CharsetUtil.UTF_8);
@@ -72,7 +72,7 @@ public class IMApiUtils {
      * @param request
      * @param context
      */
-    public static void fillCookies(FullHttpRequest request, HttpRequest context) {
+    public static void fillCookies(FullHttpRequest request, HttpContextRequest context) {
         Map<String,Cookie> cookies = new HashMap<String,Cookie>();
         String value = request.headers().get("Cookie");
         if (null != value && value.length()>0){

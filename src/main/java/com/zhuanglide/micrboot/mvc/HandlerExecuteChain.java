@@ -1,7 +1,7 @@
 package com.zhuanglide.micrboot.mvc;
 
-import com.zhuanglide.micrboot.http.HttpRequest;
-import com.zhuanglide.micrboot.http.HttpResponse;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.interceptor.ApiInterceptor;
 import com.zhuanglide.micrboot.mvc.resolver.ExceptionResolver;
 import org.slf4j.Logger;
@@ -17,7 +17,7 @@ public class HandlerExecuteChain {
     private Logger logger = LoggerFactory.getLogger(HandlerExecuteChain.class);
     private List<ApiInterceptor> apiInterceptors;
     private List<ExceptionResolver> exceptionResolvers;
-    private ApiCommandMapping mapping;
+    private ApiMethodMapping mapping;
     private Object result;
     private int interceptorIndex = -1;
 
@@ -26,7 +26,7 @@ public class HandlerExecuteChain {
         this.exceptionResolvers = exceptionResolvers;
     }
 
-    public ApiCommandMapping getMapping() {
+    public ApiMethodMapping getMapping() {
         return mapping;
     }
 
@@ -38,11 +38,11 @@ public class HandlerExecuteChain {
         this.result = result;
     }
 
-    public void setMapping(ApiCommandMapping mapping) {
+    public void setMapping(ApiMethodMapping mapping) {
         this.mapping = mapping;
     }
 
-    public boolean applyPreDispatch(HttpRequest request, HttpResponse response) throws Exception {
+    public boolean applyPreDispatch(HttpContextRequest request, HttpContextResponse response) throws Exception {
         if (!ObjectUtils.isEmpty(apiInterceptors)) {
             for (int i = 0; i < apiInterceptors.size(); i++) {
                 ApiInterceptor interceptor = apiInterceptors.get(i);
@@ -56,7 +56,7 @@ public class HandlerExecuteChain {
         return true;
     }
 
-    public void applyPostHandle(HttpRequest request, HttpResponse response) throws Exception {
+    public void applyPostHandle(HttpContextRequest request, HttpContextResponse response) throws Exception {
         if (!ObjectUtils.isEmpty(apiInterceptors)) {
             for (ApiInterceptor apiInterceptor : apiInterceptors) {
                 apiInterceptor.postHandler(mapping, request, response);
@@ -64,7 +64,7 @@ public class HandlerExecuteChain {
         }
     }
 
-    public void triggerAfterCompletion(HttpRequest request, HttpResponse response,Throwable e)
+    public void triggerAfterCompletion(HttpContextRequest request, HttpContextResponse response,Throwable e)
             throws Exception {
         if (!ObjectUtils.isEmpty(apiInterceptors)) {
             for (int i = this.interceptorIndex; i >= 0; i--) {
@@ -84,7 +84,7 @@ public class HandlerExecuteChain {
     /**
      * 对异常处理
      */
-    public void triggerException(HttpRequest request,HttpResponse response,Throwable ex){
+    public void triggerException(HttpContextRequest request,HttpContextResponse response,Throwable ex){
         if (!ObjectUtils.isEmpty(exceptionResolvers)) {
             for (ExceptionResolver exceptionResolver : exceptionResolvers) {
                 exceptionResolver.resolveException(mapping, request, response, ex);

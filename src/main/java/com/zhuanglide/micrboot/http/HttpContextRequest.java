@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * HTTP 请求上下方文封装
  */
-public class HttpRequest implements Serializable {
+public class HttpContextRequest implements Serializable {
     private static final long serialVersionUID = -2844694054296931417L;
     private long time;      //请求时间
     private String address;
@@ -32,7 +32,7 @@ public class HttpRequest implements Serializable {
     private Channel channel;
     private Map<String,Object> attachment;
 
-    public HttpRequest(FullHttpRequest request, Channel channel) {
+    public HttpContextRequest(FullHttpRequest request, Channel channel) {
         this.time = System.currentTimeMillis();
         this.request = request;
         this.headers = request.headers();
@@ -44,7 +44,7 @@ public class HttpRequest implements Serializable {
                 requestUrl = requestUrl.substring(0, idx);
             }
             if(this.requestUrl.endsWith("/")){
-                requestUrl += requestUrl.substring(0, requestUrl.length());
+                requestUrl += requestUrl.substring(0, requestUrl.length()-1);
             }
         }else{
             requestUrl = "";
@@ -192,8 +192,8 @@ public class HttpRequest implements Serializable {
     }
 
     @Override
-    public HttpRequest clone() throws CloneNotSupportedException {
-        HttpRequest _request = new HttpRequest(this.request, this.channel);
+    public HttpContextRequest clone() throws CloneNotSupportedException {
+        HttpContextRequest _request = new HttpContextRequest(this.request, this.channel);
         return _request;
     }
 }

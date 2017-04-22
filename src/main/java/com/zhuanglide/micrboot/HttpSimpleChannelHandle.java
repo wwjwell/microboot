@@ -1,18 +1,13 @@
 package com.zhuanglide.micrboot;
 
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.*;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -60,8 +55,8 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             return;
         }
         //转化为 api 能处理的request\response
-        com.zhuanglide.micrboot.http.HttpRequest request = new com.zhuanglide.micrboot.http.HttpRequest(fullRequest, ctx.channel());
-        com.zhuanglide.micrboot.http.HttpResponse response = new com.zhuanglide.micrboot.http.HttpResponse(fullRequest.protocolVersion(),
+        HttpContextRequest request = new HttpContextRequest(fullRequest, ctx.channel());
+        HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(),
                                                                                                               HttpResponseStatus.OK,charset);
 
         dispatcher.doService(request, response);
@@ -74,7 +69,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }
 
         if(isKeepAlive(fullRequest)) {
-            fullHttpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+            fullHttpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
             ctx.writeAndFlush(fullHttpResponse);
         }else{
             ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
