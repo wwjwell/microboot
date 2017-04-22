@@ -174,7 +174,7 @@ public class BatchCommndTest {
     private ApiDispatcher apiDispatcher;
 
     @ApiMethod("run")
-    public ModelAndView batchRun(HttpRequest request, HttpResponse response){
+    public ModelAndView batchRun(HttpContextRequest request, HttpContextResponse response){
         ModelAndView mv = new ModelAndView("jsonView");
         Map<String, Object> res = new HashMap<String, Object>();
         try {
@@ -182,10 +182,10 @@ public class BatchCommndTest {
             _req1.setRequestUrl("/t1");
             _req1.addParameter("name","auto name,xiaowang");
             _req1.addParameter("age","18");
-            Object r1 = apiDispatcher.innerDoService(_req1, response);
+            Object r1 = apiDispatcher.doProcess(_req1, response);
             HttpRequest _req2 = request.clone();
             _req2.setRequestUrl("/t2");
-            Object r2 = apiDispatcher.innerDoService(_req2, response, null,false);
+            Object r2 = apiDispatcher.doProcess(_req2, response, null,false);
             if (r1 != null && r1 instanceof ModelAndView) {
                 ModelAndView _mv = (ModelAndView) r1;
                 r1 = _mv.getResult();
