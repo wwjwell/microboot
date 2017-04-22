@@ -178,12 +178,12 @@ public class BatchCommndTest {
         ModelAndView mv = new ModelAndView("jsonView");
         Map<String, Object> res = new HashMap<String, Object>();
         try {
-            HttpRequest _req1 = request.clone();
+            HttpContextRequest _req1 = request.clone();
             _req1.setRequestUrl("/t1");
             _req1.addParameter("name","auto name,xiaowang");
             _req1.addParameter("age","18");
             Object r1 = apiDispatcher.doProcess(_req1, response);
-            HttpRequest _req2 = request.clone();
+            HttpContextRequest _req2 = request.clone();
             _req2.setRequestUrl("/t2");
             Object r2 = apiDispatcher.doProcess(_req2, response, null,false);
             if (r1 != null && r1 instanceof ModelAndView) {
