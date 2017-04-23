@@ -29,12 +29,12 @@ public class IMApiUtils {
     public static void fillParamsMap(FullHttpRequest request, HttpContextRequest context) {
         Map<String, List<String>> requestParamsMap = new HashMap();
         Map<String,FileUpload> requestFiles = new HashMap<String,FileUpload>();
-        QueryStringDecoder decoderQuery = new QueryStringDecoder(request.getUri(),CharsetUtil.UTF_8);
+        QueryStringDecoder decoderQuery = new QueryStringDecoder(request.uri(),CharsetUtil.UTF_8);
         Map<String, List<String>> uriAttributes = decoderQuery.parameters();
         for (Map.Entry<String, List<String>> attr : uriAttributes.entrySet()) {
             requestParamsMap.put(attr.getKey(), attr.getValue());
         }
-        if (request.getMethod().equals(HttpMethod.POST)) {
+        if (request.method().equals(HttpMethod.POST)) {
             HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), request);
             try{
                 List<InterfaceHttpData> postList = decoder.getBodyHttpDatas();

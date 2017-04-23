@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class ApiMethodMapping {
 
-    private String url;
+    private String urlPattern;
 
     private Object bean;
 
@@ -27,12 +27,12 @@ public class ApiMethodMapping {
 
     private Annotation[][] paramAnnotations;
 
-    public String getUrl() {
-        return url;
+    public String getUrlPattern() {
+        return urlPattern;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUrlPattern(String urlPattern) {
+        this.urlPattern = urlPattern;
     }
 
     public void setBean(Object bean) {
@@ -90,4 +90,5 @@ public class ApiMethodMapping {
     public void setProxyTargetBean(Object proxyTargetBean) {
         this.proxyTargetBean = proxyTargetBean;
     }
+
 }

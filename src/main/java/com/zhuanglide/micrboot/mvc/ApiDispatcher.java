@@ -4,6 +4,7 @@ import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.annotation.ApiCommand;
 import com.zhuanglide.micrboot.mvc.annotation.ApiMethod;
+import com.zhuanglide.micrboot.mvc.annotation.ApiPathVariable;
 import com.zhuanglide.micrboot.mvc.interceptor.ApiInterceptor;
 import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
 import com.zhuanglide.micrboot.mvc.resolver.ExceptionResolver;
@@ -38,7 +39,7 @@ import java.util.*;
 public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
     private Map<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>> commandMap;
     private Map<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>> cachePathMap = new HashMap<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>>();
-    private PathMatcher matcher = new AntPathMatcher();
+    private AntPathMatcher matcher = new AntPathMatcher();
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String DEFAULT_STRATEGIES_PATH = "DefaultStrategies.properties";
     private static final Properties defaultStrategies;
@@ -47,7 +48,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
     private List<ViewResolver> viewResolvers;
     private List<ApiMethodParamResolver> apiMethodParamResolvers;
     private List<ExceptionResolver> exceptionResolvers;
-    private LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
+    private LocalVariableTableParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
     static {
         try {// 加载默认配置
             ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, ApiDispatcher.class);
@@ -102,7 +103,16 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
             apiMethodParam.setParamAnnotations(paramAnnotations);
             apiMethodParam.setParamType(type);
             apiMethodParam.setParamName(paramName);
-
+            //添加path variable 解析
+            if (null != paramAnnotations) {
+                for (Annotation annotation : paramAnnotations) {
+                    if (annotation instanceof ApiPathVariable) {
+                        Map<String, String> pathVariables = matcher.extractUriTemplateVariables(mapping.getUrlPattern(), request.getRequestUrl());
+                        request.addAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY, pathVariables);
+                        break;
+                    }
+                }
+            }
             Object paramObjectValue = null;
 
             if(!ObjectUtils.isEmpty(apiMethodParamResolvers)){
@@ -237,9 +247,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         if (chain.getResult() != null) {
             if(!render(chain.getResult(), request, response)){
                 response.setStatus(HttpResponseStatus.NOT_FOUND);
-                logger.warn("not view found with path={}",
-                             chain.getMapping()
-                                  .getUrl());
+                logger.warn("not view found with path={}", chain.getMapping().getUrlPattern());
             }
         } else {
             if (logger.isDebugEnabled()) {
@@ -302,14 +310,14 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                             apiCommandMapping.setBean(entry.getValue());
                             apiCommandMapping.setProxyTargetBean(bean);
                             apiCommandMapping.setMethod(method);
-                            apiCommandMapping.setUrl(getFullUrl(basePath, apiMethod.value()));
-                            apiCommandMapping.setParamNames(localVariableTableParameterNameDiscoverer.getParameterNames(method));
+                            apiCommandMapping.setUrlPattern(getFullUrlPattern(basePath, apiMethod.value()));
+                            apiCommandMapping.setParamNames(discoverer.getParameterNames(method));
                             apiCommandMapping.setParamAnnotations(method.getParameterAnnotations());
                             apiCommandMapping.setParameterTypes(method.getParameterTypes());
-                            Map<ApiMethod.RequestMethod, ApiMethodMapping> requestMethodMap = commandMap.get(apiCommandMapping.getUrl());
+                            Map<ApiMethod.RequestMethod, ApiMethodMapping> requestMethodMap = commandMap.get(apiCommandMapping.getUrlPattern());
                             if (requestMethodMap == null) {
                                 requestMethodMap = new HashMap<ApiMethod.RequestMethod, ApiMethodMapping>();
-                                commandMap.put(apiCommandMapping.getUrl(), requestMethodMap);
+                                commandMap.put(apiCommandMapping.getUrlPattern(), requestMethodMap);
                             }
                             requestMethodMap.put(apiMethod.method(), apiCommandMapping);
                         }
@@ -378,7 +386,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
      * @param url
      * @return
      */
-    private String getFullUrl(String path, String url){
+    private String getFullUrlPattern(String path, String url){
         StringBuffer _url = new StringBuffer(path);
         _url.append(url);
         while (_url.length()>1 && _url.charAt(1) == '/') {

@@ -1,19 +1,13 @@
 package com.zhuanglide.micrboot.http;
 
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 
 /**
  * Created by wwj on 17/3/2.
@@ -39,7 +33,7 @@ public class HttpContextResponse {
     }
 
     public void addCookie(Cookie cookie){
-        httpResponse.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+        httpResponse.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
     }
 
     public void setCharset(Charset charset) {

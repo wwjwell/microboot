@@ -1,10 +1,9 @@
 package com.zhuanglide.micrboot.mvc.resolver.param;
 
-import com.zhuanglide.micrboot.mvc.annotation.ApiParam;
-import com.zhuanglide.micrboot.mvc.ApiMethodParam;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
-import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
+import com.zhuanglide.micrboot.mvc.ApiMethodParam;
+import com.zhuanglide.micrboot.mvc.annotation.ApiParam;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.FileUpload;
 
@@ -13,7 +12,7 @@ import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ApiMethodParamWebResolver implements ApiMethodParamResolver {
+public class ApiMethodParamWebResolver extends AbstractApiMethodParamResolver {
 
     private static final Set<Class> BASIC_TYPE_CLASS = new HashSet<Class>(){{
         add(HttpContextRequest.class);

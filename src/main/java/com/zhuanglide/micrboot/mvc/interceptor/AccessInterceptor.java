@@ -18,6 +18,8 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     private Logger logger = LoggerFactory.getLogger(AccessInterceptor.class);
     private String accessLoggerName = this.getClass().getName();
     private Logger accessLogger = LoggerFactory.getLogger(accessLoggerName);
+    private boolean appendHeader = false;
+    private String split = "|,|";
     protected int order = Ordered.HIGHEST_PRECEDENCE;
 
     public final static String ATTR_REQ_START_TIME = "REQ_START_TIME";
@@ -47,13 +49,21 @@ public class AccessInterceptor extends AbstractApiInterceptor {
         try {
             long startTime = (Long) request.getAttachment(ATTR_REQ_START_TIME);
             String params = (String) request.getAttachment(ATTR_REQ_SYS_PARAMS);
-            accessLogger.info("clientIp={}\"|\"url={}\"|\"{}\"|\"params=[{}]\"|\"result={}\"|\"cost={}ms",
-                              request.getAddress(),
-                              request.getRequestUrl(),
-                              headers2str(request),
-                              params,
-                              response.getContent(),
-                              (System.currentTimeMillis() - startTime));
+            StringBuffer log = new StringBuffer();
+            log.append("clientIp=").append(request.getAddress());
+            log.append(split);
+            log.append("url=").append(request.getRequestUrl());
+            if (appendHeader) {
+                log.append(split);
+                log.append(headers2str(request));
+            }
+            log.append(split);
+            log.append("params=").append(params);
+            log.append(split);
+            log.append("response=").append(response.getContent());
+            log.append(split);
+            log.append("cost=").append((System.currentTimeMillis() - startTime));
+            accessLogger.info(log.toString());
         } catch (Exception ex) {
             logger.error("", ex);
         }
@@ -61,12 +71,10 @@ public class AccessInterceptor extends AbstractApiInterceptor {
 
     private String headers2str(HttpContextRequest request) {
         StringBuffer headerString = new StringBuffer();
+        headerString.append("header=");
         if (null != request.getHeaders()) {
             for (String s : request.getHeaders().names()) {
-                headerString.append(s)
-                            .append(":")
-                            .append(request.getHeaders().getAsString(s))
-                            .append(";");
+                headerString.append(s).append(":").append(request.getHeaders().getAsString(s)).append(";");
             }
             if (headerString.length() > 0) {
                 headerString =  headerString.deleteCharAt(headerString.length() - 1);
@@ -93,5 +101,13 @@ public class AccessInterceptor extends AbstractApiInterceptor {
             sb.deleteCharAt(sb.length() - split.length());
         }
         return sb.toString();
+    }
+
+    public void setAppendHeader(boolean appendHeader) {
+        this.appendHeader = appendHeader;
+    }
+
+    public void setSplit(String split) {
+        this.split = split;
     }
 }

@@ -28,11 +28,11 @@
         <property name="accessLoggerName" value="access"/>
     </bean>
 
-    <bean class="com.zhuanglide.micrboot.test.TestInterceptor">
-        <property name="order" value="1"/>
-    </bean>
+    <!--<bean class="com.zhuanglide.micrboot.t">-->
+        <!--<property name="order" value="1"/>-->
+    <!--</bean>-->
 
-    <bean class="com.zhuanglide.micrboot.test.TestInterceptor2">
-        <property name="order" value="2"/>
-    </bean>
+    <!--<bean class="com.zhuanglide.micrboot.test.TestInterceptor2">-->
+        <!--<property name="order" value="2"/>-->
+    <!--</bean>-->
 </beans>

@@ -4,6 +4,7 @@ import com.zhuanglide.micrboot.mvc.ModelAndView;
 import com.zhuanglide.micrboot.mvc.annotation.ApiCommand;
 import com.zhuanglide.micrboot.mvc.annotation.ApiMethod;
 import com.zhuanglide.micrboot.mvc.annotation.ApiParam;
+import com.zhuanglide.micrboot.mvc.annotation.ApiPathVariable;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -33,6 +34,18 @@ public class ApiCommandTest{
         Map<String, Object> res = new HashMap<String, Object>();
         res.put("Hello","这是一");
         res.put("gaga", new Date());
+        mv.setResult(res);
+        return mv;
+    }
+
+    @ApiMethod("/detail/{id}")
+    public ModelAndView detail(@ApiPathVariable("id")int id,@ApiParam("name")String name){
+        ModelAndView mv = new ModelAndView("jsonView");
+        Map<String, Object> res = new HashMap<String, Object>();
+        res.put("Hello","这是一");
+        res.put("gaga", new Date());
+        res.put("detailId", id);
+        res.put("name", name);
         mv.setResult(res);
         return mv;
     }

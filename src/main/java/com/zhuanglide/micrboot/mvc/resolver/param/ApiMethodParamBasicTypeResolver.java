@@ -4,7 +4,7 @@ import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiMethodParam;
 import com.zhuanglide.micrboot.mvc.annotation.ApiParam;
-import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
+import com.zhuanglide.micrboot.mvc.annotation.ApiPathVariable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ApiMethodParamBasicTypeResolver implements ApiMethodParamResolver {
+public class ApiMethodParamBasicTypeResolver extends AbstractApiMethodParamResolver {
     private static final Set<Class> BASIC_TYPE_CLASS = new HashSet<Class>(){{add(String.class);
         add(BigInteger.class);
         add(Byte.class);
@@ -37,8 +37,16 @@ public class ApiMethodParamBasicTypeResolver implements ApiMethodParamResolver {
         add(long[].class);
         add(String[].class);
     }};
-    private String arraySplit = ",";
+
     public boolean support(ApiMethodParam apiMethodParam) {
+        Annotation[] paramAnnotations = apiMethodParam.getParamAnnotations();
+        if (null != paramAnnotations) {
+            for (Annotation annotation : paramAnnotations) {
+                if (annotation instanceof ApiPathVariable) {
+                    return false;
+                }
+            }
+        }
         return BASIC_TYPE_CLASS.contains(apiMethodParam.getParamType());
     }
 
@@ -80,53 +88,9 @@ public class ApiMethodParamBasicTypeResolver implements ApiMethodParamResolver {
                     throw new IllegalArgumentException("param=" + paramName +",value="+paramValue+" is illegal,pattern="+apiParamAnnotation.validateRegx());
                 }
             }
-
-            if (type.equals(String.class)) {
-                return paramValue;
-            }else if(type.equals(BigInteger.class)){
-                return null!=paramValue?new BigInteger(paramValue):null;
-            } else if (type.equals(Integer.class) || type.equals(int.class)) {
-                return Integer.parseInt(paramValue);
-            } else if (type.equals(Long.class) || type.equals(long.class)) {
-                return Long.parseLong(paramValue);
-            } else if (type.equals(Float.class) || type.equals(float.class)) {
-                return Float.parseFloat(paramValue);
-            } else if (type.equals(Double.class) || type.equals(double.class)) {
-                return Double.parseDouble(paramValue);
-            } else if (type.equals(Character.class) || type.equals(char.class)) {
-                if (null != paramValue) {
-                    return paramValue.charAt(0);
-                }
-            } else if (type.equals(Byte.class) || type.equals(byte.class)) {
-                return (byte) Integer.parseInt(paramValue);
-            } else if (type.equals(Short.class) || type.equals(short.class)) {
-                return (short) Integer.parseInt(paramValue);
-            } else if (type.equals(Boolean.class) || type.equals(boolean.class)) {
-                return Boolean.parseBoolean(paramValue);
-            } else if (type.equals(int[].class) || type.equals(int[].class)) {
-                String[] values = paramValue.split(arraySplit);
-                int[] array = new int[values.length];
-                for (int i = 0; i < values.length; i++) {
-                    array[i] = Integer.parseInt(values[i]);
-                }
-                return array;
-            } else if (type.equals(long[].class) || type.equals(long[].class)) {
-                String[] values = paramValue.split(arraySplit);
-                long[] array = new long[values.length];
-                for (int i = 0; i < values.length; i++) {
-                    array[i] = Long.parseLong(values[i]);
-                }
-                return array;
-            } else if (type.equals(String[].class) || type.equals(String[].class)) {
-                return paramValue.split(arraySplit);
-            }else{
-                return null;
-            }
+            return convert(type, paramValue);
         }
         return null;
     }
 
-    public void setArraySplit(String arraySplit) {
-        this.arraySplit = arraySplit;
-    }
 }

@@ -5,7 +5,7 @@ import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
 
-public class ApiMethodParamCommandContextResolver implements ApiMethodParamResolver {
+public class ApiMethodParamCommandContextResolver extends AbstractApiMethodParamResolver {
 
     @Override
     public boolean support(ApiMethodParam apiMethodParam) {
