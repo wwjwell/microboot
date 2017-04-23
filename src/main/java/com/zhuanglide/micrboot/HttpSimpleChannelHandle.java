@@ -68,7 +68,12 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             fullHttpResponse = response.getHttpResponse();
         }
 
-        ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+        if(isKeepAlive(fullRequest)) {
+            fullHttpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+            ctx.writeAndFlush(fullHttpResponse);
+        }else{
+            ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+        }
     }
 
 

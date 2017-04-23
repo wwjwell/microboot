@@ -93,6 +93,18 @@
             mv.setResult(res);
             return mv;
         }
+
+         @ApiMethod("/detail/{id}")
+            public ModelAndView detail(@ApiPathVariable("id")int id,@ApiParam("name")String name){
+                ModelAndView mv = new ModelAndView("jsonView");
+                Map<String, Object> res = new HashMap<String, Object>();
+                res.put("Hello","这是一");
+                res.put("gaga", new Date());
+                res.put("detailId", id);
+                res.put("name", name);
+                mv.setResult(res);
+                return mv;
+            }
     }
 ````
 
