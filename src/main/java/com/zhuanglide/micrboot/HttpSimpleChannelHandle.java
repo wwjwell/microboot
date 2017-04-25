@@ -68,12 +68,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             fullHttpResponse = response.getHttpResponse();
         }
 
-        if(isKeepAlive(fullRequest)) {
-            fullHttpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-            ctx.writeAndFlush(fullHttpResponse);
-        }else{
-            ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
-        }
+        ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
     }
 
 
@@ -102,10 +97,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
-    }
-
-    private boolean isKeepAlive(HttpRequest request){
-        return HttpUtil.isKeepAlive(request);
     }
 
 }
