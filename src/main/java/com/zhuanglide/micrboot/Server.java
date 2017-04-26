@@ -82,14 +82,22 @@ public class Server implements ApplicationContextAware,InitializingBean {
         } catch (InterruptedException e) {
             logger.error("", e);
         } finally {
-            workerGroup.shutdownGracefully();
-            bossGroup.shutdownGracefully();
+            shutdown();
         }
     }
 
     public void start(int port){
         setPort(port);
         start();
+    }
+
+    public void shutdown(){
+        if (null != bossGroup) {
+            bossGroup.shutdownGracefully();
+        }
+        if (null != workerGroup) {
+            workerGroup.shutdownGracefully();
+        }
     }
 
     public String getCharset() {

@@ -3,6 +3,7 @@ package com.zhuanglide.micrboot;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -44,7 +45,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             dispatcher = context.getAutowireCapableBeanFactory() .createBean(ApiDispatcher.class);
             context.getAutowireCapableBeanFactory().autowireBean(dispatcher);
         }
-        Assert.isTrue(dispatcher != null);
+        assert dispatcher != null;
     }
 
     @Override
@@ -67,7 +68,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }else{
             fullHttpResponse = response.getHttpResponse();
         }
-
         ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
     }
 
@@ -75,6 +75,17 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx, cause);
+        try {
+            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+            String ex = cause.getMessage();
+            if (null == ex) {
+                ex = String.valueOf(cause);
+            }
+            response.content().writeBytes(Unpooled.copiedBuffer(ex.getBytes(charset)));
+            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        } catch (Exception e) {
+            ctx.close();
+        }
     }
 
     @Override

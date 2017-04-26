@@ -66,7 +66,10 @@ public class HandlerExecuteChain {
 
     public void triggerAfterCompletion(HttpContextRequest request, HttpContextResponse response,Throwable e)
             throws Exception {
-        if (!ObjectUtils.isEmpty(apiInterceptors)) {
+        if (null != e) {
+            //do exception
+            triggerException(request, response, e);
+        }else if (!ObjectUtils.isEmpty(apiInterceptors)) {
             for (int i = this.interceptorIndex; i >= 0; i--) {
                 ApiInterceptor interceptor = apiInterceptors.get(i);
                 try {
@@ -75,9 +78,6 @@ public class HandlerExecuteChain {
                     logger.error("ApiInterceptor.afterCompletion threw exception", ex2);
                 }
             }
-        }
-        if (null != e) {
-            triggerException(request, response, e);
         }
     }
 
