@@ -4,11 +4,11 @@ import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.annotation.ApiCommand;
 import com.zhuanglide.micrboot.mvc.annotation.ApiMethod;
-import com.zhuanglide.micrboot.mvc.annotation.ApiPathVariable;
 import com.zhuanglide.micrboot.mvc.interceptor.ApiInterceptor;
 import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
 import com.zhuanglide.micrboot.mvc.resolver.ExceptionResolver;
 import com.zhuanglide.micrboot.mvc.resolver.ViewResolver;
+import com.zhuanglide.micrboot.mvc.resolver.param.ApiMethodPathVariableResolver;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,73 +80,6 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         }
 
         return findApiMethodMapping(request.getRequestUrl(),requestMethod);
-    }
-
-
-    /**
-     * 处理
-     * @return
-     */
-    private Object handler(ApiMethodMapping mapping,HttpContextRequest request,HttpContextResponse response) throws Throwable {
-        Method method = mapping.getMethod();
-        Type[] parameterTypes = mapping.getParameterTypes();
-        Annotation[][] annotations = mapping.getParamAnnotations();
-        String[] paramNames = mapping.getParamNames();
-
-        List<Object> paramList = new ArrayList();
-        for (int i = 0; i < parameterTypes.length; i++) {
-            Type type = parameterTypes[i];
-            Annotation[] paramAnnotations = annotations[i];
-            String paramName = paramNames[i];
-            ApiMethodParam apiMethodParam = new ApiMethodParam();
-            apiMethodParam.setMethod(method);
-            apiMethodParam.setParamAnnotations(paramAnnotations);
-            apiMethodParam.setParamType(type);
-            apiMethodParam.setParamName(paramName);
-            //添加path variable 解析
-            if (null != paramAnnotations) {
-                for (Annotation annotation : paramAnnotations) {
-                    if (annotation instanceof ApiPathVariable) {
-                        Map<String, String> pathVariables = matcher.extractUriTemplateVariables(mapping.getUrlPattern(), request.getRequestUrl());
-                        request.addAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY, pathVariables);
-                        break;
-                    }
-                }
-            }
-            Object paramObjectValue = null;
-
-            if(!ObjectUtils.isEmpty(apiMethodParamResolvers)){
-                for (ApiMethodParamResolver resolver : apiMethodParamResolvers) {
-                    if (resolver.support(apiMethodParam)) {
-                        paramObjectValue = resolver.getParamObject(apiMethodParam,request,response);
-                        break;
-                    }
-                }
-            }
-            if(paramObjectValue == null) {
-                //set extend attribute
-                if (mapping.getExtendFields() != null) {
-                    if (mapping.getExtendFields().containsKey(type)) {
-                        paramObjectValue = mapping.getExtendFields().get(type);
-                    }
-                }
-            }
-            paramList.add(paramObjectValue);
-        }
-
-        Object[] params = paramList.toArray(new Object[paramList.size()]);
-        Object bean = mapping.getBean();
-        Object result;
-        if (AopUtils.isAopProxy(bean)) {
-            if (AopUtils.isJdkDynamicProxy(bean)) {
-                result = Proxy.getInvocationHandler(bean).invoke(bean, method, params);
-            } else { //cglib
-                result = method.invoke(bean, params);
-            }
-        } else {
-            result = ReflectionUtils.invokeMethod(method, bean, params);
-        }
-        return result;
     }
 
     /**
@@ -229,7 +162,8 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                 chain.applyPostHandle(request, response);
             }
             //invoke & handler
-            return handler(mapping, request, response);
+            ApiMethodHandler handler = new ApiMethodHandler(mapping, request, response);
+            return handler.invoke();
         } catch (Exception e) {
             throw e;
         } catch (Throwable cause) {
@@ -239,19 +173,17 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
 
 
     private void processDispatchResult(HandlerExecuteChain chain, HttpContextRequest request, HttpContextResponse response,Throwable throwable) throws Exception {
-        if (throwable != null) {
-            chain.triggerException(request, response, throwable);
-        }
-
-        // Did the handler return a view to render?
-        if (chain.getResult() != null) {
-            if(!render(chain.getResult(), request, response)){
-                response.setStatus(HttpResponseStatus.NOT_FOUND);
-                logger.warn("not view found with path={}", chain.getMapping().getUrlPattern());
-            }
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Null modelView returned to ApiDispatcher with path={}," ,request.getRequestUrl());
+        if (throwable == null) {
+            // Did the handler return a view to render?
+            if (chain.getResult() != null) {
+                if (!render(chain.getResult(), request, response)) {
+                    response.setStatus(HttpResponseStatus.NOT_FOUND);
+                    logger.warn("no view found with path={}", chain.getMapping().getUrlPattern());
+                }
+            } else {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("no modelView returned to ApiDispatcher with path={},", request.getRequestUrl());
+                }
             }
         }
         chain.triggerAfterCompletion(request, response, throwable);
@@ -509,4 +441,91 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         return context.getAutowireCapableBeanFactory().createBean(clazz);
     }
 
+
+    /**
+     * invoke
+     */
+    public class ApiMethodHandler {
+        private ApiMethodMapping mapping;
+        private HttpContextRequest request;
+        private HttpContextResponse response;
+
+        public ApiMethodHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response) {
+            this.mapping = mapping;
+            this.request = request;
+            this.response = response;
+        }
+
+        public Object invoke() throws Exception {
+            Method method = mapping.getMethod();
+            Type[] parameterTypes = mapping.getParameterTypes();
+            Annotation[][] annotations = mapping.getParamAnnotations();
+            String[] paramNames = mapping.getParamNames();
+            Object[] values = new Object[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                Type type = parameterTypes[i];
+                Annotation[] paramAnnotations = annotations[i];
+                String paramName = paramNames[i];
+                ApiMethodParam apiMethodParam = new ApiMethodParam();
+                apiMethodParam.setMethod(method);
+                apiMethodParam.setParamAnnotations(paramAnnotations);
+                apiMethodParam.setParamType(type);
+                apiMethodParam.setParamName(paramName);
+                Object paramObjectValue = null;
+
+                boolean isResolver = false;
+                if (!ObjectUtils.isEmpty(apiMethodParamResolvers)) {
+                    for (ApiMethodParamResolver resolver : apiMethodParamResolvers) {
+                        if (resolver.support(apiMethodParam)) {
+                            isResolver = true;
+                            //PathVariable need doPathVariableParse
+                            if (resolver instanceof ApiMethodPathVariableResolver) {
+                                ApiMethodPathVariableResolver pathVariableResolver = (ApiMethodPathVariableResolver) resolver;
+                                pathVariableResolver.doPathVariableParse(matcher, mapping, request);
+                            }
+                            paramObjectValue = resolver.getParamObject(apiMethodParam, request, response);
+                            break;
+                        }
+                    }
+                }
+                if (paramObjectValue == null) {
+                    //set extend attribute
+                    if (mapping.getExtendFields() != null) {
+                        if (mapping.getExtendFields().containsKey(paramName)) {
+                            paramObjectValue = mapping.getExtendFields().get(paramName);
+                        }
+                    }
+                }
+
+                if (isResolver && null == paramObjectValue) {
+                    throw new IllegalArgumentException("can't resolver param=" + paramName + ",paramType=" + type);
+                }
+                values[i] = paramObjectValue;
+            }
+
+            Object bean = mapping.getBean();
+            Object result;
+
+            //invoke
+            try {
+                if (AopUtils.isAopProxy(bean)) {
+                    if (AopUtils.isJdkDynamicProxy(bean)) {
+                        result = Proxy.getInvocationHandler(bean).invoke(bean, method, values);
+                    } else { //cglib
+                        result = method.invoke(bean, values);
+                    }
+                } else {
+                    result = ReflectionUtils.invokeMethod(method, bean, values);
+                }
+                return result;
+            } catch (Throwable throwable) {
+                StringBuffer val = new StringBuffer();
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    val.append(parameterTypes).append(":").append(values[i]).append(";");
+                }
+                logger.error("invoke exception,object=" + bean + ",method=" + method + ",values" + val.toString(), throwable);
+                throw new Exception("invoke exception,url=" + request.getRequestUrl());
+            }
+        }
+    }
 }

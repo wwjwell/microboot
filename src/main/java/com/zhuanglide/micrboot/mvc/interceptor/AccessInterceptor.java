@@ -62,7 +62,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
             log.append(split);
             log.append("response=").append(response.getContent());
             log.append(split);
-            log.append("cost=").append((System.currentTimeMillis() - startTime));
+            log.append("cost=").append((System.currentTimeMillis() - startTime)).append("ms");
             accessLogger.info(log.toString());
         } catch (Exception ex) {
             logger.error("", ex);

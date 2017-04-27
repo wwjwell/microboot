@@ -2,8 +2,11 @@ package com.zhuanglide.micrboot.mvc.resolver.param;
 
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
+import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
 import com.zhuanglide.micrboot.mvc.ApiMethodParam;
 import com.zhuanglide.micrboot.mvc.annotation.ApiPathVariable;
+import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
+import org.springframework.util.PathMatcher;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
@@ -49,5 +52,14 @@ public class ApiMethodPathVariableResolver extends AbstractApiMethodParamResolve
             }
         }
         return null;
+    }
+
+
+    //解析patchVariable
+    public void doPathVariableParse(PathMatcher matcher, ApiMethodMapping mapping, HttpContextRequest request){
+        if(request.getAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY)==null) {
+            Map<String, String> pathVariables = matcher.extractUriTemplateVariables(mapping.getUrlPattern(), request.getRequestUrl());
+            request.addAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY, pathVariables);
+        }
     }
 }

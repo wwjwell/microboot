@@ -17,6 +17,11 @@ public class DefaultExceptionResolver implements ExceptionResolver {
     @Override
     public void resolveException(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response,Throwable ex) {
         logger.error("", ex);
+        String msg = ex.getMessage();
+        if (null == msg) {
+            msg = String.valueOf(ex);
+        }
+        response.setContent(msg);
         response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
     }
 
