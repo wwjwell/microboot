@@ -1,11 +1,7 @@
 package com.zhuanglide.micrboot;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
+import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
@@ -32,34 +28,31 @@ import java.nio.charset.Charset;
 public class Server implements ApplicationContextAware,InitializingBean {
     private Logger logger = LoggerFactory.getLogger(Server.class);
     private String charset = "UTF-8"; //默认编码
-    private boolean useEpoll = false;
+    private boolean useEpoll = true;
     private int port;
     //系统处理线程数，默认为当前CPU的核心数的2倍
-    private int threadNum = Runtime.getRuntime().availableProcessors() * 2;
-    private int bossThreads = threadNum ; //netty boss 线程
-    private int workThreads =  2 * bossThreads; //netty work线程
+    private static final int DEFAULT_EVENT_LOOP_THREADS;
+
+    static {
+        DEFAULT_EVENT_LOOP_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() * 2);
+    }
+    private int threadNum;
+    private int bossThreadNum; //netty boss 线程
+    private int workThreadNum; //netty work线程
     private int maxLength = 65536; //http报文最大长度
     private boolean useChunked = false;
     private ApplicationContext context;
     private HttpSimpleChannelHandle httpSimpleChannelHandle;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
+    private Class<? extends ServerChannel> socketChannelClass;
 
     /**
      * Http服务启动
      * 系统异步线程方式启动起来
      */
     public void start(){
-        Class<? extends ServerChannel> socketChannelClass;
-        if(epollAvailable()) {
-            bossGroup = new EpollEventLoopGroup(bossThreads);
-            workerGroup = new EpollEventLoopGroup(workThreads);
-            socketChannelClass = EpollServerSocketChannel.class;
-        }else{
-            bossGroup = new NioEventLoopGroup(bossThreads);
-            workerGroup = new NioEventLoopGroup(workThreads);
-            socketChannelClass = NioServerSocketChannel.class;
-        }
+        initEventLoopAndChannel();
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(socketChannelClass)
@@ -68,13 +61,13 @@ public class Server implements ApplicationContextAware,InitializingBean {
                         public void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline().addLast(new HttpServerCodec());
                             ch.pipeline().addLast(new HttpObjectAggregator(maxLength));
-                            if(isUseChunked()) {//是否起用文件的大数据流
+                            if (isUseChunked()) {//是否起用文件的大数据流
                                 ch.pipeline().addLast(new ChunkedWriteHandler());
                             }
                             ch.pipeline().addLast(httpSimpleChannelHandle);
                         }
                     }).option(ChannelOption.SO_BACKLOG, 128)
-                    .childOption(ChannelOption.TCP_NODELAY,true)
+                    .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             logger.info("server start at port {}",port);
             ChannelFuture f = b.bind(port).sync();
@@ -91,6 +84,35 @@ public class Server implements ApplicationContextAware,InitializingBean {
         setPort(port);
         start();
     }
+
+
+    private boolean epollAvailable(){
+        return useEpoll && Epoll.isAvailable();
+    }
+    private void initEventLoopAndChannel(){
+        if(epollAvailable()) {
+            bossGroup = new EpollEventLoopGroup(getBossThreadNum());
+            workerGroup = new EpollEventLoopGroup(getWorkThreadNum());
+            socketChannelClass = EpollServerSocketChannel.class;
+        }else{
+            bossGroup = new NioEventLoopGroup(getBossThreadNum());
+            workerGroup = new NioEventLoopGroup(getWorkThreadNum());
+            socketChannelClass = NioServerSocketChannel.class;
+        }
+    }
+    /**
+     * 初始化
+     * @param context
+     */
+    protected void initStrategies(ApplicationContext context) {
+        try {
+            httpSimpleChannelHandle = context.getBean(HttpSimpleChannelHandle.class);
+        } catch (NoSuchBeanDefinitionException e) {
+            httpSimpleChannelHandle = context.getAutowireCapableBeanFactory().createBean(HttpSimpleChannelHandle.class);
+            httpSimpleChannelHandle.setCharset(Charset.forName(charset));
+        }
+    }
+
 
     public String getCharset() {
         return charset;
@@ -120,28 +142,37 @@ public class Server implements ApplicationContextAware,InitializingBean {
         this.threadNum = threadNum;
     }
 
-    public void setBossThreads(int bossThreads) {
-        this.bossThreads = bossThreads;
-    }
-
-    public void setWorkThreads(int workThreads) {
-        this.workThreads = workThreads;
-    }
-
     public void setUseEpoll(boolean useEpoll) {
         this.useEpoll = useEpoll;
     }
 
     public int getThreadNum() {
+        if (threadNum<1) {
+            threadNum = DEFAULT_EVENT_LOOP_THREADS;
+        }
         return threadNum;
     }
 
-    public int getBossThreads() {
-        return bossThreads;
+    public int getBossThreadNum() {
+        if (bossThreadNum < 1) {
+            bossThreadNum = 1;
+        }
+        return bossThreadNum;
     }
 
-    public int getWorkThreads() {
-        return workThreads;
+    public void setBossThreadNum(int bossThreadNum) {
+        this.bossThreadNum = bossThreadNum;
+    }
+
+    public int getWorkThreadNum() {
+        if (workThreadNum < 1) {
+            workThreadNum = getThreadNum();
+        }
+        return workThreadNum;
+    }
+
+    public void setWorkThreadNum(int workThreadNum) {
+        this.workThreadNum = workThreadNum;
     }
 
     public boolean isUseChunked() {
@@ -152,21 +183,6 @@ public class Server implements ApplicationContextAware,InitializingBean {
         this.useChunked = useChunked;
     }
 
-    private boolean epollAvailable(){
-        return useEpoll && Epoll.isAvailable();
-    }
-    /**
-     * 初始化
-     * @param context
-     */
-    protected void initStrategies(ApplicationContext context) {
-        try {
-            httpSimpleChannelHandle = context.getBean(HttpSimpleChannelHandle.class);
-        } catch (NoSuchBeanDefinitionException e) {
-            httpSimpleChannelHandle = context.getAutowireCapableBeanFactory().createBean(HttpSimpleChannelHandle.class);
-            httpSimpleChannelHandle.setCharset(Charset.forName(charset));
-        }
-    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
