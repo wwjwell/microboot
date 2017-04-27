@@ -75,8 +75,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
         } catch (InterruptedException e) {
             logger.error("", e);
         } finally {
-            workerGroup.shutdownGracefully();
-            bossGroup.shutdownGracefully();
+            shutdonw();
         }
     }
 
@@ -85,6 +84,14 @@ public class Server implements ApplicationContextAware,InitializingBean {
         start();
     }
 
+    public void shutdonw(){
+        if(null != bossGroup) {
+            bossGroup.shutdownGracefully();
+        }
+        if(null != workerGroup) {
+            workerGroup.shutdownGracefully();
+        }
+    }
 
     private boolean epollAvailable(){
         return useEpoll && Epoll.isAvailable();
