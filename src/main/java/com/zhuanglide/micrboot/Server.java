@@ -211,7 +211,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
 
     public int getBossThreadNum() {
         if (bossThreadNum < 1) {
-            bossThreadNum = getThreadNum();
+            bossThreadNum = 1;
         }
         return bossThreadNum;
     }
@@ -222,7 +222,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
 
     public int getWorkerThreadNum() {
         if (workerThreadNum < 1) {
-            workerThreadNum = getBossThreadNum() * 2;
+            workerThreadNum = getThreadNum() * 2;
         }
         return workerThreadNum;
     }
