@@ -1,0 +1,42 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+/out/
+#/src/test
+# Mac
+.DS_Store
+
+# Maven
+log/
+logs/
+target/
+build/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Log file
+*.log
+
+# Java
+*.class
+
+# svn
+.svn/
+
+# Other
+*.versionsBackup
+tmp
+temp
+data

@@ -1,4 +1,4 @@
-package com.zhuanglide.micrboot.test;
+package com.zhuanglide.micrboot.demo.command;
 
 import com.zhuanglide.micrboot.mvc.ModelAndView;
 import com.zhuanglide.micrboot.mvc.annotation.ApiCommand;

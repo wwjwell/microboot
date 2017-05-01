@@ -7,25 +7,33 @@
 
     <context:property-placeholder location="classpath*:*.properties" ignore-unresolvable="true"/>
     <context:annotation-config/>
-    <context:component-scan base-package="com.zhuanglide.micrboot.test.**">
+    <context:component-scan base-package="com.zhuanglide.micrboot.demo.**">
         <context:include-filter type="annotation" expression="com.zhuanglide.micrboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
-    <bean name="batchServer" class="com.zhuanglide.micrboot.Server">
+    <bean name="server" class="com.zhuanglide.micrboot.Server">
         <property name="port" value="8080"/>
     </bean>
 
-    <bean class="com.zhuanglide.micrboot.mvc.ApiDispatcher"/>
-
+    <!-- jsonView default -->
     <bean class="com.zhuanglide.micrboot.mvc.resolver.view.JsonViewResolver">
         <property name="viewName" value="jsonView"/>
         <property name="order" value="1"/>
     </bean>
-    <bean class="com.zhuanglide.micrboot.mvc.interceptor.AccessInterceptor"/>
-    <bean class="com.zhuanglide.micrboot.test.TestInterceptor">
-        <property name="order" value="1"/>
+
+    <bean class="com.zhuanglide.micrboot.mvc.resolver.view.StringViewResolver">
     </bean>
 
-    <bean class="com.zhuanglide.micrboot.test.TestInterceptor2">
+    <!-- access logger-->
+    <bean class="com.zhuanglide.micrboot.mvc.interceptor.AccessInterceptor">
+        <property name="accessLoggerName" value="access"/>
+    </bean>
+
+    <bean class="com.zhuanglide.micrboot.mvc.ApiDispatcher"/>
+
+    <bean class="com.zhuanglide.micrboot.demo.interceptor.TestInterceptor">
+        <property name="order" value="1"/>
+    </bean>
+    <bean class="com.zhuanglide.micrboot.demo.interceptor.TestInterceptor2">
         <property name="order" value="2"/>
     </bean>
 </beans>

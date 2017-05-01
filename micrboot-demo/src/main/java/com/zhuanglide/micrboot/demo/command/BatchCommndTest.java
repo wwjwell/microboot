@@ -1,4 +1,4 @@
-package com.zhuanglide.micrboot.test;
+package com.zhuanglide.micrboot.demo.command;
 
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;

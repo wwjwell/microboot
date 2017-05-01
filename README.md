@@ -54,9 +54,9 @@
 ````
 * 设置spring配置文件
 
-具体可以参照test/resource/api.xml
+具体可以参照micrboot-demo/src/main/resources/api.xml
 ````xml
-    <context:component-scan base-package="com.zhuanglide.micrboot.test.**">
+    <context:component-scan base-package="com.zhuanglide.micrboot.demo.**">
         <!-- 扫描ApiCommand注解 -->
         <context:include-filter type="annotation" expression="com.zhuanglide.micrboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
@@ -67,7 +67,7 @@
     </bean>
 ````
 * 增加业务接口 
-可以参考test/java/com.zhuanglide.micrboot.test.ApiCommandTest
+micrboot-demo/src/main/java/com.zhuanglide.micrboot.demo.command.ApiCommandTest
 ````java
     @ApiCommand
     public class ApiCommandTest{
@@ -120,17 +120,12 @@
     "a": "我的家"
 }
 ```
-具体可以参照test/java/com.zhuanglide.micrboot.test.TestServer
+具体可以参照micrboot-demo/src/main/java/com.zhuanglide.micrboot.demo.Main
 ````java
-    @RunWith(SpringJUnit4ClassRunner.class)
-    @ContextConfiguration(locations = {"classpath*:api.xml"})
-    public class TestServer {
-        @Autowired
-        private Server server;
-        @Test
-        public void main(){
-            server.start();
-        }
+    public static void main(String[] args) {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:api.xml");
+        Server server = context.getBean(Server.class);
+        server.start();
     }
 ````
 
@@ -164,7 +159,7 @@
 ````
 增加拦截器，需要在spring配置文件中显示调用
 ````xml
-    <bean class="com.zhuanglide.micrboot.test.TestInterceptor">
+    <bean class="com.zhuanglide.micrboot.demo.interceptor.TestInterceptor">
         <property name="order" value="1"/>
     </bean>
 ````
@@ -173,7 +168,7 @@
 
 * 设置spring配置文件 需要增加一个设置
 
-参考test/resource/api_batch.xml
+参考micrboot-demo/src/main/resources/api.xml
 ```xml
     <bean class="com.zhuanglide.micrboot.mvc.ApiDispatcher"/>
 ```

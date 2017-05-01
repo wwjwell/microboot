@@ -1,11 +1,11 @@
 package com.zhuanglide.micrboot.mvc.resolver.view;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.http.MediaType;
 import com.zhuanglide.micrboot.mvc.ModelAndView;
 import com.zhuanglide.micrboot.mvc.resolver.ViewResolver;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.InitializingBean;
 
 /**

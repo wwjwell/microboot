@@ -1,4 +1,4 @@
-package com.zhuanglide.micrboot.test;
+package com.zhuanglide.micrboot.demo.interceptor;
 
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
@@ -6,24 +6,24 @@ import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
 import com.zhuanglide.micrboot.mvc.interceptor.AbstractApiInterceptor;
 
 /**
- * Created by wwj on 2017/4/1.
+ * Created by wwj on 17/3/22.
  */
-public class TestInterceptor2 extends AbstractApiInterceptor {
+public class TestInterceptor extends AbstractApiInterceptor {
     @Override
     public boolean preDispatch(HttpContextRequest request, HttpContextResponse response) {
-        System.out.println("TestInterceptor2 preDispatch url="+request.getRequestUrl());
+        System.out.println("TestInterceptor preDispatch url="+request.getRequestUrl());
         return super.preDispatch(request, response);
     }
 
     @Override
     public void postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response) {
-        System.out.println("TestInterceptor2 postHandler url="+request.getRequestUrl());
+        System.out.println("TestInterceptor postHandler url="+request.getRequestUrl());
         super.postHandler(mapping, request, response);
     }
 
     @Override
     public void afterHandle(ApiMethodMapping mapping, Object modelView, HttpContextRequest request, HttpContextResponse response, Throwable throwable) {
-        System.out.println("TestInterceptor2 afterHandle url="+request.getRequestUrl());
+        System.out.println("TestInterceptor afterHandle url="+request.getRequestUrl());
         super.afterHandle(mapping, modelView, request, response, throwable);
     }
 }
