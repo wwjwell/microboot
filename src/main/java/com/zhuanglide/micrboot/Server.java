@@ -39,7 +39,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
 
     private static final int BASE_EVENT_LOOP_THREAD_NUM;
     static {
-        BASE_EVENT_LOOP_THREAD_NUM = Math.max(1, Runtime.getRuntime().availableProcessors() * 2);
+        BASE_EVENT_LOOP_THREAD_NUM = Math.max(1, Runtime.getRuntime().availableProcessors());
     }
     private int threadMultipleNum;
     private int maxLength = 65536; //http报文最大长度
