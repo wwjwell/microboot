@@ -31,8 +31,7 @@
     
 * TIPS：这一版是还没有经过线上的考验
     
-    但是：我曾经写过micrboot的前一版，暂且叫 first_micrboot，自测在4核8G的虚拟机上，最简单的ECHO接口，QPS能到1w/s，
-    并且这一版(first_micrboot)在正式生产上稳定运行，4台上述配置虚拟机，带业务的接口73w/min的线上请求量，平稳支撑。
+    目前micrboot正在做性能测试,将对比tomcat,只做Http解码的Netty服务, 后面在末尾增加性能测试报告(非专业)
     
     micrboot现在只是一个架子，还没有在正式环境中运行过，甚至完整的测试过，有任何问题，请发issue
     
