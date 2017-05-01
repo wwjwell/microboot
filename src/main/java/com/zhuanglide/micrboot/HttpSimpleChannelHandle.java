@@ -3,12 +3,12 @@ package com.zhuanglide.micrboot;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.util.Assert;
 
 import java.nio.charset.Charset;
 
@@ -69,7 +68,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }else{
             fullHttpResponse = response.getHttpResponse();
         }
-        ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+        sendResponse(fullHttpResponse, ctx);
     }
 
 
@@ -78,12 +77,17 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         logger.error("", cause);
         try {
             FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+            if (cause instanceof TooLongFrameException) {
+                response.setStatus(HttpResponseStatus.BAD_REQUEST);
+            }else {
+                response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            }
             String ex = cause.getMessage();
             if (null == ex) {
                 ex = String.valueOf(cause);
             }
             response.content().writeBytes(ex.getBytes(charset));
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            sendResponse(response, ctx);
         } catch (Exception e) {
             logger.error("", e);
             ctx.close();
@@ -96,6 +100,12 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         ctx.close();
     }
 
+    private void sendResponse(FullHttpResponse response, ChannelHandlerContext ctx) {
+        if(response.content()!=null) {
+            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, response.content().writerIndex());
+        }
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
 
     public void setCharset(Charset charset) {
         this.charset = charset;
