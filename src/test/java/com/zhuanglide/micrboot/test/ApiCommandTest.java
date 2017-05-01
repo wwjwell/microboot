@@ -28,7 +28,7 @@ public class ApiCommandTest{
         return mv;
     }
 
-    @ApiMethod("/t2")
+    @ApiMethod(value = "/t2",httpMethod = ApiMethod.HttpMethod.GET)
     public ModelAndView test2(){
         ModelAndView mv = new ModelAndView("jsonView");
         Map<String, Object> res = new HashMap<String, Object>();

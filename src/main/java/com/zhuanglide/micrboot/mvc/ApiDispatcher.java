@@ -39,8 +39,8 @@ import java.util.*;
  * Created by wwj on 17/3/2.
  */
 public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
-    private Map<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>> commandMap;
-    private Map<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>> cachePathMap = new HashMap<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>>();
+    private Map<String, Map<ApiMethod.HttpMethod, ApiMethodMapping>> commandMap;
+    private Map<String, Map<ApiMethod.HttpMethod, ApiMethodMapping>> cachePathMap = new HashMap<String, Map<ApiMethod.HttpMethod, ApiMethodMapping>>();
     private AntPathMatcher matcher = new AntPathMatcher();
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String DEFAULT_STRATEGIES_PATH = "DefaultStrategies.properties";
@@ -67,21 +67,16 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
      */
     public ApiMethodMapping dispatcher(HttpContextRequest request) throws Exception{
         String methodValue = request.getHttpMethod();
-        ApiMethod.RequestMethod requestMethod;
+        ApiMethod.HttpMethod httpMethod = ApiMethod.HttpMethod.ALL;
         //根据method 和 path分发请求
-        if (ApiMethod.RequestMethod.GET.equals(methodValue)) {
-            requestMethod = ApiMethod.RequestMethod.GET;
-        } else if (ApiMethod.RequestMethod.POST.equals(methodValue)) {
-            requestMethod = ApiMethod.RequestMethod.POST;
-        } else if (ApiMethod.RequestMethod.UPDATE.equals(methodValue)) {
-            requestMethod = ApiMethod.RequestMethod.UPDATE;
-        } else if (ApiMethod.RequestMethod.DELETE.equals(methodValue)) {
-            requestMethod = ApiMethod.RequestMethod.DELETE;
-        }else{
-            requestMethod = ApiMethod.RequestMethod.ALL;
+        for (ApiMethod.HttpMethod _httpMethod : ApiMethod.HttpMethod.values()) {
+            if(_httpMethod.equals(methodValue)){
+                httpMethod = _httpMethod;
+                break;
+            }
         }
 
-        return findApiMethodMapping(request.getRequestUrl(),requestMethod);
+        return findApiMethodMapping(request.getRequestUrl(),httpMethod);
     }
 
     /**
@@ -225,7 +220,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
      */
     private boolean loadApiCommand(ApplicationContext context) {
         if (context != null) {
-            commandMap = new HashMap<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>>();
+            commandMap = new HashMap<String, Map<ApiMethod.HttpMethod, ApiMethodMapping>>();
             Map<String, Object> objectMap = context.getBeansWithAnnotation(ApiCommand.class);
             for (Map.Entry<String, Object> entry : objectMap.entrySet()) {
                 try {
@@ -246,12 +241,12 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                             apiCommandMapping.setParamNames(paramNamesDiscoverer.getParameterNames(method));
                             apiCommandMapping.setParamAnnotations(method.getParameterAnnotations());
                             apiCommandMapping.setParameterTypes(method.getParameterTypes());
-                            Map<ApiMethod.RequestMethod, ApiMethodMapping> requestMethodMap = commandMap.get(apiCommandMapping.getUrlPattern());
+                            Map<ApiMethod.HttpMethod, ApiMethodMapping> requestMethodMap = commandMap.get(apiCommandMapping.getUrlPattern());
                             if (requestMethodMap == null) {
-                                requestMethodMap = new HashMap<ApiMethod.RequestMethod, ApiMethodMapping>();
+                                requestMethodMap = new HashMap<ApiMethod.HttpMethod, ApiMethodMapping>();
                                 commandMap.put(apiCommandMapping.getUrlPattern(), requestMethodMap);
                             }
-                            requestMethodMap.put(apiMethod.method(), apiCommandMapping);
+                            requestMethodMap.put(apiMethod.httpMethod(), apiCommandMapping);
                         }
                     }
 
@@ -267,14 +262,14 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
     /**
      * findApiMethodMapping from cache or create new when first init
      */
-    public ApiMethodMapping findApiMethodMapping(String url, ApiMethod.RequestMethod requestMethod) {
-        Map<ApiMethod.RequestMethod, ApiMethodMapping> map = cachePathMap.get(url);
+    public ApiMethodMapping findApiMethodMapping(String url, ApiMethod.HttpMethod requestMethod) {
+        Map<ApiMethod.HttpMethod, ApiMethodMapping> map = cachePathMap.get(url);
         ApiMethodMapping apiMethodMapping = null;
         if (null == map) {
             synchronized (cachePathMap) {
                 map = cachePathMap.get(url);
                 if (null == map) {
-                    for (Map.Entry<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>> entry : commandMap.entrySet()) {
+                    for (Map.Entry<String, Map<ApiMethod.HttpMethod, ApiMethodMapping>> entry : commandMap.entrySet()) {
                         if(matcher.match(entry.getKey(), url)) {
                             map = entry.getValue();
                             if(checkCache()) {
@@ -289,8 +284,8 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
 
         if(null != map){
             apiMethodMapping = map.get(requestMethod);
-            if(null == apiMethodMapping && requestMethod != ApiMethod.RequestMethod.ALL) {
-                apiMethodMapping = map.get(ApiMethod.RequestMethod.ALL);
+            if(null == apiMethodMapping && requestMethod != ApiMethod.HttpMethod.ALL) {
+                apiMethodMapping = map.get(ApiMethod.HttpMethod.ALL);
             }
         }
 

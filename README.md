@@ -1,7 +1,7 @@
 # micrboot
    * 干什么的
     
-    基于netty高性能网络框架的http服务器，非常适合后台接口的微服务。
+    基于netty高性能网络框架的HTTP RESTful服务器，非常适合后台接口的微服务。
   * 优点
   
     设计思想基于springMVC，用法也是springMVC的简化版（只不过注解不一样，也更简陋，不过对于后端接口服务，基本能满足所有的需要）
@@ -12,8 +12,8 @@
     
     不需要web容器，更轻量，部署更简单
     
-    没有j2ee规范，就是最直接http服务器
-    
+    没有j2ee规范，就是最直接RESTful架构的http服务器
+
   * 缺点
   
     没有使用j2ee的规范，所以view层是无法对jsp渲染，现在也只做了JSON 和String 两种，后续会加上freemark 和静态资源，
@@ -83,8 +83,9 @@
             mv.setResult(res);
             return mv;
         }
-    
-        @ApiMethod("/t2")
+
+        //restful ,只针对GET请求
+        @ApiMethod("/t2",httpMethod = ApiMethod.HttpMethod.GET)
         public ModelAndView test2(){
             ModelAndView mv = new ModelAndView("JSON_VIEW");
             Map<String, Object> res = new HashMap<String, Object>();

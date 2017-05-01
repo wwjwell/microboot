@@ -9,15 +9,16 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiMethod {
     String value();
-    enum RequestMethod {
-        ALL("ALL"), GET("GET"), POST("POST"), UPDATE("UPDATE"), DELETE("DELETE");
+    enum HttpMethod {
+        ALL("ALL"), GET("GET"), POST("POST"), UPDATE("UPDATE"), DELETE("DELETE")
+        ,OPTIONS("OPTIONS"),HEAD("HEAD"),PUT("PUT"),PATCH("PATCH"),TRACE("TRACE"),CONNECT("CONNECT");
         private String methodType;
-        RequestMethod(String methodType) {
+        HttpMethod(String methodType) {
             this.methodType = methodType;
         }
         public boolean equals(String method) {
             return method.equalsIgnoreCase(methodType);
         }
     }
-    RequestMethod method() default RequestMethod.ALL;
+    HttpMethod httpMethod() default HttpMethod.ALL;
 }
