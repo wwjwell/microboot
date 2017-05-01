@@ -48,6 +48,10 @@ public class HttpContextResponse {
         httpResponse.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
     }
 
+    public Charset getCharset() {
+        return charset;
+    }
+
     public void setCharset(Charset charset) {
         this.charset = charset;
     }

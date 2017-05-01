@@ -31,14 +31,14 @@ public abstract class ViewResolver implements Ordered {
         return order;
     }
 
-    public String getContentType() {
+    public String getContentType(){
         return contentType;
     }
 
     public void setOrder(int order) {
         this.order = order;
     }
-    public void setContentType(String contentType) {
+    public void setContentType(String contentType){
         this.contentType = contentType;
     }
 }

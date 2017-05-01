@@ -200,10 +200,10 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         for (ViewResolver viewResolver : this.viewResolvers) {
             ModelAndView mv = viewResolver.resolve(result);
             if (null != mv) {
-                if (null != viewResolver.getContentType() && response.containsHeader(HttpHeaderNames.CONTENT_TYPE)) {
+                viewResolver.render(mv, request, response);
+                if (null != viewResolver.getContentType() && !response.containsHeader(HttpHeaderNames.CONTENT_TYPE)) {
                     response.addHeader(HttpHeaderNames.CONTENT_TYPE, viewResolver.getContentType());
                 }
-                viewResolver.render(mv, request, response);
                 resolver = true;
                 break;
             }

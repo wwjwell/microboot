@@ -38,6 +38,11 @@ public class ApiCommandTest{
         return mv;
     }
 
+    @ApiMethod("/t3")
+    public String t3() {
+        return "狮驼岭";
+    }
+
     @ApiMethod("/detail/{id}")
     public ModelAndView detail(@ApiPathVariable("id")int id,String abc,@ApiParam("name")String name){
         ModelAndView mv = new ModelAndView("jsonView");

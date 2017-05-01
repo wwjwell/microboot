@@ -60,7 +60,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }
         //转化为 api 能处理的request\response
         HttpContextRequest request = new HttpContextRequest(fullRequest, ctx.channel());
-        HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(),HttpResponseStatus.OK,charset);
+        HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(), HttpResponseStatus.OK, charset);
         dispatcher.doService(request, response);
         FullHttpResponse fullHttpResponse;
         if(null == response){
@@ -101,9 +101,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     }
 
     private void sendResponse(FullHttpResponse response, ChannelHandlerContext ctx) {
-        if(response.content()!=null) {
-            response.headers().add(HttpHeaderNames.CONTENT_LENGTH, response.content().writerIndex());
-        }
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
