@@ -26,10 +26,24 @@ public class HttpContextResponse {
         httpResponse.setStatus(status);
     }
 
-    public void addHeader(String name, String value) {
+    /**
+     * header
+     */
+    public void addHeader(CharSequence name, Object value) {
         httpResponse.headers().add(name, value);
     }
 
+    public boolean containsHeader(CharSequence name) {
+        return httpResponse.headers().contains(name);
+    }
+
+    public String getHeader(CharSequence name) {
+        return httpResponse.headers().get(name);
+    }
+
+    /**
+     * cookie
+     */
     public void addCookie(Cookie cookie){
         httpResponse.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
     }

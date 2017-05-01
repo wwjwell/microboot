@@ -1,5 +1,7 @@
 package com.zhuanglide.micrboot.mvc;
 
+import com.zhuanglide.micrboot.http.MediaType;
+
 /**
  * Created by wwj on 17/3/9.
  */
@@ -7,7 +9,16 @@ public class ModelAndView {
     //viewName
     protected String viewName;
     protected Object result;
+    protected MediaType mediaType;
     public ModelAndView(){}
+
+    public MediaType getMediaType() {
+        return mediaType;
+    }
+
+    public void setMediaType(MediaType mediaType) {
+        this.mediaType = mediaType;
+    }
 
     public ModelAndView(String viewName){
         this.viewName = viewName;

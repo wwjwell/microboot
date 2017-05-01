@@ -95,9 +95,11 @@ public class HttpContextRequest implements Serializable {
         return headers;
     }
 
-
-    public void setHeader(String name, String value) {
+    public void setHeader(CharSequence name, Object value) {
         headers.add(name, value);
+    }
+    public String getHeader(CharSequence name) {
+        return headers.get(name);
     }
 
     public Map<String, List<String>> getRequestParamsMap() {

@@ -2,6 +2,7 @@ package com.zhuanglide.micrboot.mvc;
 
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
+import com.zhuanglide.micrboot.http.MediaType;
 import com.zhuanglide.micrboot.mvc.annotation.ApiCommand;
 import com.zhuanglide.micrboot.mvc.annotation.ApiMethod;
 import com.zhuanglide.micrboot.mvc.interceptor.ApiInterceptor;
@@ -187,11 +188,20 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
 
     protected boolean render(Object result, HttpContextRequest request, HttpContextResponse response) throws Exception {
         boolean resolver = false;
+        if (null != result && result instanceof ModelAndView) {
+            ModelAndView mv = (ModelAndView) result;
+            if(mv.getMediaType()!=null) {
+                String contentType = request.getHeader(HttpHeaderNames.CONTENT_TYPE);
+                if (null != contentType) {
+                    mv.setMediaType(MediaType.valueOf(contentType));
+                }
+            }
+        }
         for (ViewResolver viewResolver : this.viewResolvers) {
             ModelAndView mv = viewResolver.resolve(result);
             if (null != mv) {
-                if (null != viewResolver.getContentType()) {
-                    response.addHeader(HttpHeaderNames.CONTENT_TYPE.toString(), viewResolver.getContentType());
+                if (null != viewResolver.getContentType() && response.containsHeader(HttpHeaderNames.CONTENT_TYPE)) {
+                    response.addHeader(HttpHeaderNames.CONTENT_TYPE, viewResolver.getContentType());
                 }
                 viewResolver.render(mv, request, response);
                 resolver = true;
