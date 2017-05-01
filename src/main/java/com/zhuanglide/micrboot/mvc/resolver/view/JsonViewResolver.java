@@ -13,7 +13,7 @@ import org.springframework.beans.factory.InitializingBean;
  */
 public class JsonViewResolver extends ViewResolver implements InitializingBean {
     public static final String DEFAULT_JSON_VIEW_NAME = "JSON_VIEW";
-    private String contentType = MediaType.APPLICATION_JSON.toString();
+    private String contentType = MediaType.APPLICATION_JSON;
     private String viewName = DEFAULT_JSON_VIEW_NAME;
     private ObjectMapper objectMapper;
 

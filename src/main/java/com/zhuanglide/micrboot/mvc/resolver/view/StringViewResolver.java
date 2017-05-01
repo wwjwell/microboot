@@ -10,7 +10,7 @@ import com.zhuanglide.micrboot.mvc.resolver.ViewResolver;
  * Created by wwj on 17/3/22.
  */
 public class StringViewResolver extends ViewResolver {
-    private String contentType = MediaType.TEXT_XML.toString();
+    private String contentType = MediaType.TEXT_HTML;
     @Override
     public ModelAndView resolve(Object result) {
         if (result instanceof ModelAndView) {
