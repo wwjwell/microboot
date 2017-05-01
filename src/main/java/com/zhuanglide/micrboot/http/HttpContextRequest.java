@@ -32,26 +32,22 @@ public class HttpContextRequest implements Serializable {
     private Channel channel;
     private Map<String,Object> attachment;
 
-    public HttpContextRequest(FullHttpRequest request, Channel channel) {
+    public HttpContextRequest(FullHttpRequest request,Channel channel) {
         this.time = System.currentTimeMillis();
         this.request = request;
         this.headers = request.headers();
         this.httpMethod = request.method().name().toUpperCase();
         this.requestUrl = request.uri();
+        this.channel = channel;
         if(requestUrl!=null) {
             int idx = requestUrl.indexOf("?");
             if (idx > 0) {
                 requestUrl = requestUrl.substring(0, idx);
             }
-            if(this.requestUrl.endsWith("/")){
-                requestUrl += requestUrl.substring(0, requestUrl.length()-1);
-            }
-        }else{
-            requestUrl = "";
         }
+        requestUrl = IMApiUtils.joinOptimizePath(requestUrl);
         IMApiUtils.fillParamsMap(request, this);     //init http params
         IMApiUtils.fillCookies(request, this);      //init http cookie
-        this.channel = channel;
     }
 
     public String getParameter(String name){

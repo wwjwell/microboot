@@ -37,11 +37,11 @@ public class Server implements ApplicationContextAware,InitializingBean {
     private boolean useEpoll = true;
     private int port;
 
-    private static final int DEFAULT_EVENT_LOOP_THREADS;
+    private static final int BASE_EVENT_LOOP_THREAD_NUM;
     static {
-        DEFAULT_EVENT_LOOP_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() * 2);
+        BASE_EVENT_LOOP_THREAD_NUM = Math.max(1, Runtime.getRuntime().availableProcessors() * 2);
     }
-    private int threadNum;
+    private int threadMultipleNum;
     private int maxLength = 65536; //http报文最大长度
     private boolean useChunked = false;
     private int bossThreadNum;
@@ -173,19 +173,19 @@ public class Server implements ApplicationContextAware,InitializingBean {
         this.maxLength = maxLength;
     }
 
-    public void setThreadNum(int threadNum) {
-        this.threadNum = threadNum;
+    public void setThreadMultipleNum(int threadMultipleNum) {
+        this.threadMultipleNum = threadMultipleNum;
     }
 
     public void setUseEpoll(boolean useEpoll) {
         this.useEpoll = useEpoll;
     }
 
-    public int getThreadNum() {
-        if (threadNum < 1) {
-            threadNum = DEFAULT_EVENT_LOOP_THREADS;
+    public int getThreadMultipleNum() {
+        if (threadMultipleNum < 1) {
+            threadMultipleNum = 2;
         }
-        return threadNum;
+        return threadMultipleNum;
     }
 
 
@@ -211,7 +211,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
 
     public int getBossThreadNum() {
         if (bossThreadNum < 1) {
-            bossThreadNum = getThreadNum();
+            bossThreadNum = 1;
         }
         return bossThreadNum;
     }
@@ -222,7 +222,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
 
     public int getWorkerThreadNum() {
         if (workerThreadNum < 1) {
-            workerThreadNum = getBossThreadNum() * 2;
+            workerThreadNum = BASE_EVENT_LOOP_THREAD_NUM * getThreadMultipleNum();
         }
         return workerThreadNum;
     }

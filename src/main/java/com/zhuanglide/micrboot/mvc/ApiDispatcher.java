@@ -9,6 +9,8 @@ import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
 import com.zhuanglide.micrboot.mvc.resolver.ExceptionResolver;
 import com.zhuanglide.micrboot.mvc.resolver.ViewResolver;
 import com.zhuanglide.micrboot.mvc.resolver.param.ApiMethodPathVariableResolver;
+import com.zhuanglide.micrboot.util.IMApiUtils;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +50,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
     private List<ViewResolver> viewResolvers;
     private List<ApiMethodParamResolver> apiMethodParamResolvers;
     private List<ExceptionResolver> exceptionResolvers;
-    private LocalVariableTableParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
+    private LocalVariableTableParameterNameDiscoverer paramNamesDiscoverer = new LocalVariableTableParameterNameDiscoverer();
     static {
         try {// 加载默认配置
             ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, ApiDispatcher.class);
@@ -93,7 +95,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         Throwable handlerEx = null;
         try {
             try {
-                chain.setResult(doService0(request, response, chain));
+                chain.setResult(doProcess0(request, response, chain, true));
             } catch (Exception e) {
                 handlerEx = e;
             } catch (Throwable throwable) {
@@ -106,17 +108,15 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         }
     }
 
-
-    public Object doService0(HttpContextRequest request, HttpContextResponse response, HandlerExecuteChain chain) throws Exception{
-        return doProcess0(request, response, chain, true);
-    }
-
+    /**
+     * do process用于外部调用
+     */
     public Object doProcess(HttpContextRequest request, HttpContextResponse response) throws Exception{
         return doProcess0(request, response, null, true);
     }
 
     /**
-     *
+     * do process用于外部调用
      * @param request
      * @param response
      * @param withInterceptor if true ,interceptors are usable,false -> disabled
@@ -178,6 +178,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
             if (chain.getResult() != null) {
                 if (!render(chain.getResult(), request, response)) {
                     response.setStatus(HttpResponseStatus.NOT_FOUND);
+                    response.setContent("can't find view with path="+request.getRequestUrl());
                     logger.warn("no view found with path={}", chain.getMapping().getUrlPattern());
                 }
             } else {
@@ -195,7 +196,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
             ModelAndView mv = viewResolver.resolve(result);
             if (null != mv) {
                 if (null != viewResolver.getContentType()) {
-                    response.addHeader("Content-Type", viewResolver.getContentType());
+                    response.addHeader(HttpHeaderNames.CONTENT_TYPE.toString(), viewResolver.getContentType());
                 }
                 viewResolver.render(mv, request, response);
                 resolver = true;
@@ -224,7 +225,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
      */
     private boolean loadApiCommand(ApplicationContext context) {
         if (context != null) {
-            commandMap = new HashMap();
+            commandMap = new HashMap<String, Map<ApiMethod.RequestMethod, ApiMethodMapping>>();
             Map<String, Object> objectMap = context.getBeansWithAnnotation(ApiCommand.class);
             for (Map.Entry<String, Object> entry : objectMap.entrySet()) {
                 try {
@@ -234,7 +235,6 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                     }
                     Method[] methodArray = bean.getClass().getMethods();
                     ApiCommand apiCommand = bean.getClass().getAnnotation(ApiCommand.class);
-                    String basePath = getBasePath(apiCommand.value());
                     for (Method method : methodArray) {
                         ApiMethod apiMethod = AnnotationUtils.findAnnotation(method, ApiMethod.class);
                         if (apiMethod != null) {
@@ -242,8 +242,8 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                             apiCommandMapping.setBean(entry.getValue());
                             apiCommandMapping.setProxyTargetBean(bean);
                             apiCommandMapping.setMethod(method);
-                            apiCommandMapping.setUrlPattern(getFullUrlPattern(basePath, apiMethod.value()));
-                            apiCommandMapping.setParamNames(discoverer.getParameterNames(method));
+                            apiCommandMapping.setUrlPattern(IMApiUtils.joinOptimizePath(apiCommand.value(), apiMethod.value()));
+                            apiCommandMapping.setParamNames(paramNamesDiscoverer.getParameterNames(method));
                             apiCommandMapping.setParamAnnotations(method.getParameterAnnotations());
                             apiCommandMapping.setParameterTypes(method.getParameterTypes());
                             Map<ApiMethod.RequestMethod, ApiMethodMapping> requestMethodMap = commandMap.get(apiCommandMapping.getUrlPattern());
@@ -264,6 +264,9 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         return true;
     }
 
+    /**
+     * findApiMethodMapping from cache or create new when first init
+     */
     public ApiMethodMapping findApiMethodMapping(String url, ApiMethod.RequestMethod requestMethod) {
         Map<ApiMethod.RequestMethod, ApiMethodMapping> map = cachePathMap.get(url);
         ApiMethodMapping apiMethodMapping = null;
@@ -297,38 +300,6 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         return cachePathMap.size()<50000;
     }
 
-    /**
-     * get base Url
-     * @param path
-     * @return
-     */
-    private String getBasePath(String path){
-        if(!path.startsWith("/")){
-            path = "/" + path;
-        }
-        if (!path.endsWith("/")) {
-            path += "/";
-        }
-        return path;
-    }
-
-    /**
-     * get FullUrl
-     * @param path
-     * @param url
-     * @return
-     */
-    private String getFullUrlPattern(String path, String url){
-        StringBuffer _url = new StringBuffer(path);
-        _url.append(url);
-        while (_url.length()>1 && _url.charAt(1) == '/') {
-            _url = _url.deleteCharAt(1);
-        }
-        while (_url.length()>0 && _url.charAt(_url.length()-1)=='/') {
-            _url = _url.deleteCharAt(_url.length() - 1);
-        }
-        return _url.toString();
-    }
 
     protected void initViewResolver(ApplicationContext context){
         Map<String, ViewResolver> matchingBeans =

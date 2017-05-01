@@ -2,6 +2,7 @@ package com.zhuanglide.micrboot.util;
 
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
@@ -27,7 +28,7 @@ public class IMApiUtils {
      * @return
      */
     public static void fillParamsMap(FullHttpRequest request, HttpContextRequest context) {
-        Map<String, List<String>> requestParamsMap = new HashMap();
+        Map<String, List<String>> requestParamsMap = new HashMap<String, List<String>>();
         Map<String,FileUpload> requestFiles = new HashMap<String,FileUpload>();
         QueryStringDecoder decoderQuery = new QueryStringDecoder(request.uri(),CharsetUtil.UTF_8);
         Map<String, List<String>> uriAttributes = decoderQuery.parameters();
@@ -74,7 +75,7 @@ public class IMApiUtils {
      */
     public static void fillCookies(FullHttpRequest request, HttpContextRequest context) {
         Map<String,Cookie> cookies = new HashMap<String,Cookie>();
-        String value = request.headers().get("Cookie");
+        String value = request.headers().get(HttpHeaderNames.COOKIE);
         if (null != value && value.length()>0){
             for (Cookie cookie : ServerCookieDecoder.STRICT.decode(value)) {
                 cookies.put(cookie.name(), cookie);
@@ -85,32 +86,28 @@ public class IMApiUtils {
 
 
     /**
-     * 左匹配，右边以*结尾代表模糊匹配
-     *
-     * @param srcMethodName
-     * @param wildcardMethodName
+     * 组装优化路径 [/a,/b]->/a/b/
+     * [a,/b] -> /a/b/
+     * [/a/,b/] -> /a/b/
+     * [a,b] -> /a/b/
+     * @param path
      * @return
      */
-    public static boolean leftMatch(String srcMethodName, String wildcardMethodName) {
-        if (srcMethodName == null && wildcardMethodName == null) {
-            return true;//全是null，确实匹配。
+    public static String joinOptimizePath(String ... path ) {
+        StringBuffer _url = new StringBuffer();
+        _url.append("/");
+        if(null != path) {
+            for (String url : path) {
+                if (null != url) {
+                    _url.append(url).append("/");
+                }
+            }
         }
-        if (srcMethodName == null || wildcardMethodName == null) {
-            return false;//有一个是null，不匹配。
+        int idx = _url.indexOf("//");
+        while (idx != -1) {
+            _url = _url.deleteCharAt(idx);
+            idx = _url.indexOf("//");
         }
-        if (srcMethodName.length() == 0 && wildcardMethodName.length() == 0) {
-            return true;//全是空串，确实匹配。
-        }
-        if (wildcardMethodName.length() == 0) {
-            return false;//匹配串是空串，不匹配。
-        }
-        if (wildcardMethodName.equals("*")) {
-            return true;//全匹配
-        }
-        if (wildcardMethodName.endsWith("*")) {
-            wildcardMethodName = wildcardMethodName.substring(0, wildcardMethodName.length() - 1);
-            return srcMethodName.startsWith(wildcardMethodName);
-        }
-        return srcMethodName.equalsIgnoreCase(wildcardMethodName);
+        return _url.toString();
     }
 }

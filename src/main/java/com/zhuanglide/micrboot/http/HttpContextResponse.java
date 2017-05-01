@@ -42,7 +42,7 @@ public class HttpContextResponse {
 
     public void setContent(String content){
         this.content = content;
-        httpResponse.content().writeBytes(Unpooled.copiedBuffer(content.getBytes(charset)));
+        httpResponse.content().writeBytes(content.getBytes(charset));
     }
     public String getContent(){return content;}
 
@@ -56,7 +56,7 @@ public class HttpContextResponse {
         if (null == fileName || fileName.length()==0) {
             httpResponse.headers().set("Content-Disposition", "attachment;filename=\""+fileName+"\"");
         }
-        httpResponse.content().writeBytes(Unpooled.copiedBuffer(bytes));
+        httpResponse.content().writeBytes(bytes);
     }
 
 

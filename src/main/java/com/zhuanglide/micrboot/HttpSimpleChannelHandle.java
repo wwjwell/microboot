@@ -3,12 +3,15 @@ package com.zhuanglide.micrboot;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -23,6 +26,7 @@ import java.nio.charset.Charset;
  */
 @Sharable
 public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHttpRequest> implements ApplicationContextAware,InitializingBean{
+    private Logger logger = LoggerFactory.getLogger(HttpSimpleChannelHandle.class);
     private Charset charset; //系统编码
     private ApplicationContext context;
     private ApiDispatcher dispatcher;
@@ -57,11 +61,8 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }
         //转化为 api 能处理的request\response
         HttpContextRequest request = new HttpContextRequest(fullRequest, ctx.channel());
-        HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(),
-                                                                                                              HttpResponseStatus.OK,charset);
-
+        HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(),HttpResponseStatus.OK,charset);
         dispatcher.doService(request, response);
-
         FullHttpResponse fullHttpResponse;
         if(null == response){
             fullHttpResponse = new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST);
@@ -74,16 +75,17 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
+        logger.error("", cause);
         try {
             FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
             String ex = cause.getMessage();
             if (null == ex) {
                 ex = String.valueOf(cause);
             }
-            response.content().writeBytes(Unpooled.copiedBuffer(ex.getBytes(charset)));
+            response.content().writeBytes(ex.getBytes(charset));
             ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         } catch (Exception e) {
+            logger.error("", e);
             ctx.close();
         }
     }
