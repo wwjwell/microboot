@@ -41,7 +41,9 @@ public class JsonViewResolver extends ViewResolver implements InitializingBean {
 
     @Override
     public void render(ModelAndView mv, HttpContextRequest request, HttpContextResponse response) throws Exception {
-        response.setContent(objectMapper.writeValueAsString(mv.getResult()));
+        if(null != mv.getResult()) {
+            response.setContent(objectMapper.writeValueAsString(mv.getResult()));
+        }
     }
 
     @Override
