@@ -43,6 +43,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
     }
     private int threadMultipleNum;
     private int maxLength = 65536; //http报文最大长度
+    private int idelTime = 30;
     private boolean useChunked = false;
     private int bossThreadNum;
     private int workerThreadNum;
@@ -65,7 +66,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new IdleStateHandler(30, 30, 30));
+                            ch.pipeline().addLast(new IdleStateHandler(idelTime, idelTime, idelTime));
                             ch.pipeline().addLast(new HttpServerCodec());
                             ch.pipeline().addLast(new HttpObjectAggregator(maxLength));
                             if(isUseChunked()) {//是否起用文件的大数据流
@@ -214,6 +215,14 @@ public class Server implements ApplicationContextAware,InitializingBean {
             bossThreadNum = 1;
         }
         return bossThreadNum;
+    }
+
+    public int getIdelTime() {
+        return idelTime;
+    }
+
+    public void setIdelTime(int idelTime) {
+        this.idelTime = idelTime;
     }
 
     public void setBossThreadNum(int bossThreadNum) {
