@@ -14,6 +14,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
@@ -24,6 +25,8 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 
@@ -47,6 +50,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
     private boolean useChunked = false;
     private int bossThreadNum;
     private int workerThreadNum;
+    private SSLEngine ssEngine;
     private Executor executor;
     private ApplicationContext context;
     private HttpSimpleChannelHandle httpSimpleChannelHandle;
@@ -66,10 +70,13 @@ public class Server implements ApplicationContextAware,InitializingBean {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
+                            if (null != getSsEngine()) {
+                                ch.pipeline().addLast(new SslHandler(ssEngine));
+                            }
                             ch.pipeline().addLast(new IdleStateHandler(getIdelTime(), getIdelTime(), getIdelTime()));
                             ch.pipeline().addLast(new HttpServerCodec());
                             ch.pipeline().addLast(new HttpObjectAggregator(maxLength));
-                            if(isUseChunked()) {//是否起用文件的大数据流
+                            if (isUseChunked()) {//是否起用文件的大数据流
                                 ch.pipeline().addLast(new ChunkedWriteHandler());
                             }
                             ch.pipeline().addLast(httpSimpleChannelHandle);
@@ -215,6 +222,14 @@ public class Server implements ApplicationContextAware,InitializingBean {
             bossThreadNum = 1;
         }
         return bossThreadNum;
+    }
+
+    public SSLEngine getSsEngine() {
+        return ssEngine;
+    }
+
+    public void setSsEngine(SSLEngine ssEngine) {
+        this.ssEngine = ssEngine;
     }
 
     public int getIdelTime() {
