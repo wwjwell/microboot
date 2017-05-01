@@ -1,5 +1,6 @@
 package com.zhuanglide.micrboot.mvc.resolver.view;
 
+import com.zhuanglide.micrboot.common.MediaType;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ModelAndView;
@@ -12,7 +13,7 @@ import org.springframework.beans.factory.InitializingBean;
  */
 public class JsonViewResolver extends ViewResolver implements InitializingBean {
     public static final String DEFAULT_JSON_VIEW_NAME = "JSON_VIEW";
-    private String contentType = "application/json";
+    private String contentType = MediaType.APPLICATION_JSON.toString();
     private String viewName = DEFAULT_JSON_VIEW_NAME;
     private ObjectMapper objectMapper;
 

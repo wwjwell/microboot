@@ -1,5 +1,6 @@
 package com.zhuanglide.micrboot.mvc.resolver.view;
 
+import com.zhuanglide.micrboot.common.MediaType;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ModelAndView;
@@ -9,7 +10,7 @@ import com.zhuanglide.micrboot.mvc.resolver.ViewResolver;
  * Created by wwj on 17/3/22.
  */
 public class StringViewResolver extends ViewResolver {
-    private String contentType = "text/html";
+    private String contentType = MediaType.TEXT_XML.toString();
     @Override
     public ModelAndView resolve(Object result) {
         if (result instanceof ModelAndView) {
