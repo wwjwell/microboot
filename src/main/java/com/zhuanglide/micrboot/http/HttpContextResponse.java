@@ -54,7 +54,7 @@ public class HttpContextResponse {
     public void setFile(String fileName, byte[] bytes){
         httpResponse.headers().set(CONTENT_TYPE, "text/html; charset="+charset.displayName());
         if (null == fileName || fileName.length()==0) {
-            httpResponse.headers().set("Content-Disposition", "attachment;filename=\""+fileName+"\"");
+            httpResponse.headers().set(HttpHeaderNames.CONTENT_DISPOSITION, "attachment;filename=\""+fileName+"\"");
         }
         httpResponse.content().writeBytes(bytes);
     }
