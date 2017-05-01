@@ -10,7 +10,7 @@ import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
 import com.zhuanglide.micrboot.mvc.resolver.ExceptionResolver;
 import com.zhuanglide.micrboot.mvc.resolver.ViewResolver;
 import com.zhuanglide.micrboot.mvc.resolver.param.ApiMethodPathVariableResolver;
-import com.zhuanglide.micrboot.util.IMApiUtils;
+import com.zhuanglide.micrboot.util.HttpUtils;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -247,7 +247,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                             apiCommandMapping.setBean(entry.getValue());
                             apiCommandMapping.setProxyTargetBean(bean);
                             apiCommandMapping.setMethod(method);
-                            apiCommandMapping.setUrlPattern(IMApiUtils.joinOptimizePath(apiCommand.value(), apiMethod.value()));
+                            apiCommandMapping.setUrlPattern(HttpUtils.joinOptimizePath(apiCommand.value(), apiMethod.value()));
                             apiCommandMapping.setParamNames(paramNamesDiscoverer.getParameterNames(method));
                             apiCommandMapping.setParamAnnotations(method.getParameterAnnotations());
                             apiCommandMapping.setParameterTypes(method.getParameterTypes());

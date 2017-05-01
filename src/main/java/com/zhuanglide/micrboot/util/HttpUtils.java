@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class IMApiUtils {
+public class HttpUtils {
     /**
      * 填充http参数
      *

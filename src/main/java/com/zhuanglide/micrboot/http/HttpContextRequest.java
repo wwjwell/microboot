@@ -1,7 +1,7 @@
 package com.zhuanglide.micrboot.http;
 
 
-import com.zhuanglide.micrboot.util.IMApiUtils;
+import com.zhuanglide.micrboot.util.HttpUtils;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -45,9 +45,9 @@ public class HttpContextRequest implements Serializable {
                 requestUrl = requestUrl.substring(0, idx);
             }
         }
-        requestUrl = IMApiUtils.joinOptimizePath(requestUrl);
-        IMApiUtils.fillParamsMap(request, this);     //init http params
-        IMApiUtils.fillCookies(request, this);      //init http cookie
+        requestUrl = HttpUtils.joinOptimizePath(requestUrl);
+        HttpUtils.fillParamsMap(request, this);     //init http params
+        HttpUtils.fillCookies(request, this);      //init http cookie
     }
 
     public String getParameter(String name){
