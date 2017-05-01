@@ -7,8 +7,6 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 
 import java.nio.charset.Charset;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
-
 /**
  * Created by wwj on 17/3/2.
  */
@@ -52,7 +50,7 @@ public class HttpContextResponse {
     }
 
     public void setFile(String fileName, byte[] bytes){
-        httpResponse.headers().set(CONTENT_TYPE, "text/html; charset="+charset.displayName());
+        httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset="+charset.displayName());
         if (null == fileName || fileName.length()==0) {
             httpResponse.headers().set(HttpHeaderNames.CONTENT_DISPOSITION, "attachment;filename=\""+fileName+"\"");
         }
