@@ -2,7 +2,8 @@
 #### 干什么的
     基于netty高性能网络框架的HTTP RESTful服务器，非常适合后台接口的微服务。
     和作者一样不喜欢微服务还要依赖一个重量级的WEB容器的同学,绝对是不二的选择
-
+#### micrboot架构图
+    ![image](https://github.com/wwjwell/micrboot/blob/master/docs/micrboot.png)
 #### 优点
 - 设计思想基于springMVC，用法也是springMVC的简化版（只不过注解不一样，也更简陋，不过对于后端接口服务，基本能满足所有的需要）
 - 使用简单，上手快，用法也是springMVC的简化版，只要学过springMVC 基本没有任何学习瓶颈
