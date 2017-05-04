@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 @Documented
 @Component
 public @interface ApiCommand {
-    String value() default "/";
+    String value() default "";
 }
