@@ -2,14 +2,13 @@ package com.zhuanglide.micrboot.http;
 
 
 import com.zhuanglide.micrboot.util.HttpUtils;
-import io.netty.channel.Channel;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.FileUpload;
 
 import java.io.Serializable;
-import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -27,18 +26,19 @@ public class HttpContextRequest implements Serializable {
     private HttpHeaders headers;  //header
     private Map<String, List<String>> requestParamsMap; //参数
     private Map<String,FileUpload> requestFiles;
+    private String body;
+    private Charset charset;
     private FullHttpRequest request;    //Base request
     private Map<String,Cookie> cookies; //request cookies
-    private Channel channel;
     private Map<String,Object> attachment;
 
-    public HttpContextRequest(FullHttpRequest request,Channel channel) {
+    public HttpContextRequest(FullHttpRequest request,Charset charset) {
         this.time = System.currentTimeMillis();
         this.request = request;
+        this.charset = charset;
         this.headers = request.headers();
         this.httpMethod = request.method().name().toUpperCase();
         this.requestUrl = request.uri();
-        this.channel = channel;
         if(requestUrl!=null) {
             int idx = requestUrl.indexOf("?");
             if (idx > 0) {
@@ -46,7 +46,7 @@ public class HttpContextRequest implements Serializable {
             }
         }
         requestUrl = HttpUtils.joinOptimizePath(requestUrl);
-        HttpUtils.fillParamsMap(request, this);     //init http params
+        HttpUtils.fillParamsMap(request, this, charset);     //init http params
         HttpUtils.fillCookies(request, this);      //init http cookie
     }
 
@@ -144,19 +144,8 @@ public class HttpContextRequest implements Serializable {
             if(address == null || address.length() == 0 || "unknown".equalsIgnoreCase(address)) {
                 address = request.headers().get("WL-Proxy-Client-IP");
             }
-            if (address == null || address.length() == 0 || "unknown".equalsIgnoreCase(address)) {
-                address = ((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress();
-            }
         }
         return address;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public void setChannel(Channel channel) {
-        this.channel = channel;
     }
 
     public FullHttpRequest getRequest() {
@@ -191,7 +180,23 @@ public class HttpContextRequest implements Serializable {
 
     @Override
     public HttpContextRequest clone() throws CloneNotSupportedException {
-        HttpContextRequest _request = new HttpContextRequest(this.request, this.channel);
+        HttpContextRequest _request = new HttpContextRequest(this.request, this.charset);
         return _request;
+    }
+
+    public String getBody() {
+        if (null == body) {
+            synchronized (this) {
+                int len = request.content().readableBytes();
+                if(len >0) {
+                    byte[] bytes = new byte[len];
+                    request.content().readBytes(bytes, 0, len);
+                    body = new String(bytes,charset);
+                }else{
+                    body = "";
+                }
+            }
+        }
+        return body;
     }
 }

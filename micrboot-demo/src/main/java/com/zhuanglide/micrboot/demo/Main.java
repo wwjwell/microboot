@@ -15,7 +15,6 @@ public class Main {
         final Server server = context.getBean(Server.class);
 
         Thread thread = new Thread(new Runnable() {
-            @Override
             public void run() {
                 server.start();
             }
@@ -24,7 +23,6 @@ public class Main {
         thread.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
             public void run() {
                 synchronized (Main.class) {
                     server.shutdown();

@@ -7,14 +7,9 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
-import io.netty.handler.codec.http.multipart.Attribute;
-import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
-import io.netty.handler.codec.http.multipart.FileUpload;
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData;
-import io.netty.handler.codec.http.multipart.MemoryFileUpload;
-import io.netty.util.CharsetUtil;
+import io.netty.handler.codec.http.multipart.*;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,13 +19,13 @@ public class HttpUtils {
     /**
      * 填充http参数
      *
-     * @param request
+     * @param requestß
      * @return
      */
-    public static void fillParamsMap(FullHttpRequest request, HttpContextRequest context) {
+    public static void fillParamsMap(FullHttpRequest request, HttpContextRequest context, Charset charset) {
         Map<String, List<String>> requestParamsMap = new HashMap<String, List<String>>();
         Map<String,FileUpload> requestFiles = new HashMap<String,FileUpload>();
-        QueryStringDecoder decoderQuery = new QueryStringDecoder(request.uri(),CharsetUtil.UTF_8);
+        QueryStringDecoder decoderQuery = new QueryStringDecoder(request.uri(),charset);
         Map<String, List<String>> uriAttributes = decoderQuery.parameters();
         for (Map.Entry<String, List<String>> attr : uriAttributes.entrySet()) {
             requestParamsMap.put(attr.getKey(), attr.getValue());
@@ -43,7 +38,7 @@ public class HttpUtils {
                     String name = data.getName();
                     if (InterfaceHttpData.HttpDataType.Attribute == data.getHttpDataType()) {
                         Attribute attribute = (Attribute) data;
-                        attribute.setCharset(CharsetUtil.UTF_8);
+                        attribute.setCharset(charset);
                         String value = attribute.getValue();
                         List<String> valueList = requestParamsMap.get(name);
                         if(null == valueList) {

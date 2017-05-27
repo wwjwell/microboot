@@ -1,12 +1,7 @@
 package com.zhuanglide.micrboot;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
-import io.netty.channel.epoll.Epoll;
+import io.netty.channel.*;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -14,9 +9,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -25,33 +18,13 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import java.nio.charset.Charset;
-import java.util.concurrent.Executor;
-
 /**
  * http server
  * Created by wwj on 17/3/2.
  */
 public class Server implements ApplicationContextAware,InitializingBean {
     private Logger logger = LoggerFactory.getLogger(Server.class);
-    private String charset = "UTF-8"; //默认编码
-    private boolean useEpoll = true;
-    private int port;
-
-    private static final int BASE_EVENT_LOOP_THREAD_NUM;
-    static {
-        BASE_EVENT_LOOP_THREAD_NUM = Math.max(1, Runtime.getRuntime().availableProcessors());
-    }
-    private int threadMultipleNum;
-    private int maxLength = 65536; //http报文最大长度
-    private int idelTime = 30;
-    private boolean useChunked = false;
-    private int bossThreadNum;
-    private int workerThreadNum;
-    private SSLEngine ssEngine;
-    private Executor executor;
+    private ServerConfig serverConfig;
     private ApplicationContext context;
     private HttpSimpleChannelHandle httpSimpleChannelHandle;
     private EventLoopGroup bossGroup;
@@ -70,13 +43,9 @@ public class Server implements ApplicationContextAware,InitializingBean {
                     .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            if (null != getSsEngine()) {
-                                ch.pipeline().addLast(new SslHandler(ssEngine));
-                            }
-                            ch.pipeline().addLast(new IdleStateHandler(getIdelTime(), getIdelTime(), getIdelTime()));
                             ch.pipeline().addLast(new HttpServerCodec());
-                            ch.pipeline().addLast(new HttpObjectAggregator(maxLength));
-                            if (isUseChunked()) {//是否起用文件的大数据流
+                            ch.pipeline().addLast(new HttpObjectAggregator(getServerConfig().getMaxLength()));
+                            if(getServerConfig().isUseChunked()) {//是否起用文件的大数据流
                                 ch.pipeline().addLast(new ChunkedWriteHandler());
                             }
                             ch.pipeline().addLast(httpSimpleChannelHandle);
@@ -84,8 +53,8 @@ public class Server implements ApplicationContextAware,InitializingBean {
                     }).option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.TCP_NODELAY,true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
-            logger.info("server start at port {}",port);
-            ChannelFuture f = b.bind(port).sync();
+            logger.info("server start at port {}",getServerConfig().getPort());
+            ChannelFuture f = b.bind(getServerConfig().getPort()).sync();
             f.channel().closeFuture().sync();
         } catch (Exception e) {
             logger.error("", e);
@@ -94,17 +63,15 @@ public class Server implements ApplicationContextAware,InitializingBean {
         }
     }
 
-    public void start(int port){
-        setPort(port);
-        start();
-    }
-
 
     /**
      * 优雅的关闭
      */
     public void shutdown(){
+        long time = System.currentTimeMillis();
+        logger.info("server shutdownGracefully ...");
         try {
+
             if (null != bossGroup) {
                 bossGroup.shutdownGracefully();
             }
@@ -114,6 +81,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
         } catch (Exception e) {
             logger.error("", e);
         }
+        logger.info("server shutdown finish ,cost=" + (System.currentTimeMillis() - time) + "ms");
     }
 
 
@@ -126,7 +94,7 @@ public class Server implements ApplicationContextAware,InitializingBean {
             httpSimpleChannelHandle = context.getBean(HttpSimpleChannelHandle.class);
         } catch (NoSuchBeanDefinitionException e) {
             httpSimpleChannelHandle = context.getAutowireCapableBeanFactory().createBean(HttpSimpleChannelHandle.class);
-            httpSimpleChannelHandle.setCharset(Charset.forName(charset));
+            httpSimpleChannelHandle.setServerConfig(getServerConfig());
         }
     }
 
@@ -134,127 +102,28 @@ public class Server implements ApplicationContextAware,InitializingBean {
      * 初始化eventGroup 初始化channel
      */
     private void intEventGroupAndChannel(){
-        if(epollAvailable()) {
-            if(null == getExecutor()) {
-                bossGroup = new EpollEventLoopGroup(getBossThreadNum());
-                workerGroup = new EpollEventLoopGroup(getWorkerThreadNum());
-            }else{
-                bossGroup = new EpollEventLoopGroup(getBossThreadNum(), getExecutor());
-                workerGroup = new EpollEventLoopGroup(getWorkerThreadNum(), getExecutor());
-            }
+        if(getServerConfig().epollAvailable()) {
+            bossGroup = new EpollEventLoopGroup(getServerConfig().getBossThreadNum());
+            workerGroup = new EpollEventLoopGroup(getServerConfig().getWorkerThreadNum());
             socketChannelClass = EpollServerSocketChannel.class;
         }else{
-            if(null == getExecutor()) {
-                bossGroup = new NioEventLoopGroup(getBossThreadNum());
-                workerGroup = new NioEventLoopGroup(getWorkerThreadNum());
-            }else{
-                bossGroup = new NioEventLoopGroup(getBossThreadNum(), getExecutor());
-                workerGroup = new NioEventLoopGroup(getWorkerThreadNum(), getExecutor());
-            }
+            bossGroup = new NioEventLoopGroup(getServerConfig().getBossThreadNum());
+            workerGroup = new NioEventLoopGroup(getServerConfig().getWorkerThreadNum());
             socketChannelClass = NioServerSocketChannel.class;
         }
     }
 
 
-
-    public String getCharset() {
-        return charset;
+    public void setServerConfig(ServerConfig serverConfig) {
+        this.serverConfig = serverConfig;
     }
 
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public void setCharset(String charset) {
-        this.charset = charset;
-    }
-
-    public int getMaxLength() {
-        return maxLength;
-    }
-
-    public void setMaxLength(int maxLength) {
-        this.maxLength = maxLength;
-    }
-
-    public void setThreadMultipleNum(int threadMultipleNum) {
-        this.threadMultipleNum = threadMultipleNum;
-    }
-
-    public void setUseEpoll(boolean useEpoll) {
-        this.useEpoll = useEpoll;
-    }
-
-    public int getThreadMultipleNum() {
-        if (threadMultipleNum < 1) {
-            threadMultipleNum = 2;
+    public ServerConfig getServerConfig() {
+        if (null == serverConfig) {
+            serverConfig = ServerConfig.defaultServerConfig();
         }
-        return threadMultipleNum;
+        return serverConfig;
     }
-
-
-    public boolean isUseChunked() {
-        return useChunked;
-    }
-
-    public void setUseChunked(boolean useChunked) {
-        this.useChunked = useChunked;
-    }
-
-    private boolean epollAvailable(){
-        return useEpoll && Epoll.isAvailable();
-    }
-
-    public Executor getExecutor() {
-        return executor;
-    }
-
-    public void setExecutor(Executor executor) {
-        this.executor = executor;
-    }
-
-    public int getBossThreadNum() {
-        if (bossThreadNum < 1) {
-            bossThreadNum = 1;
-        }
-        return bossThreadNum;
-    }
-
-    public SSLEngine getSsEngine() {
-        return ssEngine;
-    }
-
-    public void setSsEngine(SSLEngine ssEngine) {
-        this.ssEngine = ssEngine;
-    }
-
-    public int getIdelTime() {
-        return idelTime;
-    }
-
-    public void setIdelTime(int idelTime) {
-        this.idelTime = idelTime;
-    }
-
-    public void setBossThreadNum(int bossThreadNum) {
-        this.bossThreadNum = bossThreadNum;
-    }
-
-    public int getWorkerThreadNum() {
-        if (workerThreadNum < 1) {
-            workerThreadNum = BASE_EVENT_LOOP_THREAD_NUM * getThreadMultipleNum();
-        }
-        return workerThreadNum;
-    }
-
-    public void setWorkerThreadNum(int workerThreadNum) {
-        this.workerThreadNum = workerThreadNum;
-    }
-
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

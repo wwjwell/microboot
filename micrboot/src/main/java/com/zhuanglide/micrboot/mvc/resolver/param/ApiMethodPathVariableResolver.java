@@ -56,10 +56,13 @@ public class ApiMethodPathVariableResolver extends AbstractApiMethodParamResolve
 
 
     //解析patchVariable
-    public void doPathVariableParse(PathMatcher matcher, ApiMethodMapping mapping, HttpContextRequest request){
-        if(request.getAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY)==null) {
-            Map<String, String> pathVariables = matcher.extractUriTemplateVariables(mapping.getUrlPattern(), request.getRequestUrl());
-            request.addAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY, pathVariables);
+    public void prepare(ApiMethodMapping mapping, HttpContextRequest request,Object ... args){
+        if(null != args && args.length>0 && args[0] instanceof PathMatcher) {
+            PathMatcher matcher = (PathMatcher) args[0];
+            if (request.getAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY) == null) {
+                Map<String, String> pathVariables = matcher.extractUriTemplateVariables(mapping.getUrlPattern(), request.getRequestUrl());
+                request.addAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY, pathVariables);
+            }
         }
     }
 }

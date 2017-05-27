@@ -10,8 +10,9 @@
     <context:component-scan base-package="com.zhuanglide.micrboot.demo.**">
         <context:include-filter type="annotation" expression="com.zhuanglide.micrboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
+    <bean name="serverConf" class="com.zhuanglide.micrboot.ServerConfig"/>
     <bean name="server" class="com.zhuanglide.micrboot.Server">
-        <property name="port" value="8080"/>
+        <property name="serverConfig" ref="serverConf"/>
     </bean>
 
     <!-- jsonView default -->

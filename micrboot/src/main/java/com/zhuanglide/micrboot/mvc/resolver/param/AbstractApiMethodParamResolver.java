@@ -2,6 +2,7 @@ package com.zhuanglide.micrboot.mvc.resolver.param;
 
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
+import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
 import com.zhuanglide.micrboot.mvc.ApiMethodParam;
 import com.zhuanglide.micrboot.mvc.resolver.ApiMethodParamResolver;
 
@@ -63,6 +64,10 @@ public abstract class AbstractApiMethodParamResolver implements ApiMethodParamRe
             return value.split(arraySplit);
         }
         return null;
+    }
+
+    @Override
+    public void prepare(ApiMethodMapping mapping, HttpContextRequest request, Object... args) {
     }
 
     public void setArraySplit(String arraySplit) {

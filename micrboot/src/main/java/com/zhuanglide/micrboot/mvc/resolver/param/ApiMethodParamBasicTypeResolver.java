@@ -5,6 +5,7 @@ import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiMethodParam;
 import com.zhuanglide.micrboot.mvc.annotation.ApiParam;
 import com.zhuanglide.micrboot.mvc.annotation.ApiPathVariable;
+import com.zhuanglide.micrboot.mvc.annotation.ApiRequestBody;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -19,7 +20,7 @@ public class ApiMethodParamBasicTypeResolver extends AbstractApiMethodParamResol
         Annotation[] paramAnnotations = apiMethodParam.getParamAnnotations();
         if (null != paramAnnotations) {
             for (Annotation annotation : paramAnnotations) {
-                if (annotation instanceof ApiParam) {
+                if (annotation instanceof ApiParam || annotation instanceof ApiRequestBody) {
                     return true;
                 }
             }
@@ -30,39 +31,32 @@ public class ApiMethodParamBasicTypeResolver extends AbstractApiMethodParamResol
     public Object getParamObject(ApiMethodParam apiMethodParam, HttpContextRequest request, HttpContextResponse response) throws Exception {
         if (support(apiMethodParam)) {
             Type type = apiMethodParam.getParamType();
-
-            String paramName = apiMethodParam.getParamName();
-            String paramDefaultValue = null;
-            boolean required = true;
-
             Annotation[] paramAnnotations = apiMethodParam.getParamAnnotations();
-            ApiParam apiParamAnnotation = null;
-
+            String paramValue = null;
             if (paramAnnotations != null) {
                 for (Annotation paramAnnotation : paramAnnotations) {
                     if (paramAnnotation instanceof ApiParam) {
-                        apiParamAnnotation = (ApiParam) paramAnnotation;
-                        paramName = apiParamAnnotation.value();
-                        paramDefaultValue = apiParamAnnotation.defaultValue();
-                        required = apiParamAnnotation.required();
+                        ApiParam apiParamAnnotation = (ApiParam) paramAnnotation;
+                        String paramName = apiParamAnnotation.value();
+                        String paramDefaultValue = apiParamAnnotation.defaultValue();
+                        paramValue = request.getParameter(paramName);
+                        if (apiParamAnnotation.required() && paramValue == null) {
+                            throw new IllegalArgumentException("param=" + paramName +" is required");
+                        }
+                        if (paramValue == null) {
+                            paramValue = paramDefaultValue;
+                        }
+                        if (apiParamAnnotation != null && apiParamAnnotation.validateRegx().length()>0) {
+                            Pattern pattern = Pattern.compile(apiParamAnnotation.validateRegx());
+                            Matcher matcher = pattern.matcher(String.valueOf(paramValue));
+                            if (!matcher.find()) {
+                                throw new IllegalArgumentException("param=" + paramName +",value="+paramValue+" is illegal,pattern="+apiParamAnnotation.validateRegx());
+                            }
+                        }
                         break;
+                    }else if(paramAnnotation instanceof ApiRequestBody){
+                        paramValue = request.getBody();
                     }
-                }
-            }
-
-            String paramValue = request.getParameter(paramName);
-            if (required && paramValue == null) {
-                throw new IllegalArgumentException("param=" + paramName +" is required");
-            }
-            if (paramValue == null) {
-                paramValue = paramDefaultValue;
-            }
-
-            if (apiParamAnnotation != null && apiParamAnnotation.validateRegx().length()>0) {
-                Pattern pattern = Pattern.compile(apiParamAnnotation.validateRegx());
-                Matcher matcher = pattern.matcher(String.valueOf(paramValue));
-                if (!matcher.find()) {
-                    throw new IllegalArgumentException("param=" + paramName +",value="+paramValue+" is illegal,pattern="+apiParamAnnotation.validateRegx());
                 }
             }
             return convert(type, paramValue);

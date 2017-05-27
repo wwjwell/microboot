@@ -456,8 +456,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                             isResolver = true;
                             //PathVariable need doPathVariableParse
                             if (resolver instanceof ApiMethodPathVariableResolver) {
-                                ApiMethodPathVariableResolver pathVariableResolver = (ApiMethodPathVariableResolver) resolver;
-                                pathVariableResolver.doPathVariableParse(matcher, mapping, request);
+                                resolver.prepare(mapping, request, matcher);
                             }
                             paramObjectValue = resolver.getParamObject(apiMethodParam, request, response);
                             break;

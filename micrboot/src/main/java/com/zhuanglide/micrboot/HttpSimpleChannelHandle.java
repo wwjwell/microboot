@@ -3,7 +3,6 @@ package com.zhuanglide.micrboot;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,15 +17,13 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.nio.charset.Charset;
-
 /**
  * HTTP handle
  */
 @Sharable
 public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHttpRequest> implements ApplicationContextAware,InitializingBean{
     private Logger logger = LoggerFactory.getLogger(HttpSimpleChannelHandle.class);
-    private Charset charset; //系统编码
+    private ServerConfig serverConfig;
     private ApplicationContext context;
     private ApiDispatcher dispatcher;
     /**
@@ -59,8 +56,8 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             return;
         }
         //转化为 api 能处理的request\response
-        HttpContextRequest request = new HttpContextRequest(fullRequest, ctx.channel());
-        HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(), HttpResponseStatus.OK, charset);
+        HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
+        HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
         dispatcher.doService(request, response);
         FullHttpResponse fullHttpResponse;
         if(null == response){
@@ -86,7 +83,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             if (null == ex) {
                 ex = String.valueOf(cause);
             }
-            response.content().writeBytes(ex.getBytes(charset));
+            response.content().writeBytes(ex.getBytes(getServerConfig().getCharset()));
             sendResponse(response, ctx);
         } catch (Exception e) {
             logger.error("", e);
@@ -104,9 +101,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
-    public void setCharset(Charset charset) {
-        this.charset = charset;
-    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -119,4 +113,11 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         this.context = applicationContext;
     }
 
+    public ServerConfig getServerConfig() {
+        return serverConfig;
+    }
+
+    public void setServerConfig(ServerConfig serverConfig) {
+        this.serverConfig = serverConfig;
+    }
 }

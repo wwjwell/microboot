@@ -1,10 +1,7 @@
 package com.zhuanglide.micrboot.demo.command;
 
 import com.zhuanglide.micrboot.mvc.ModelAndView;
-import com.zhuanglide.micrboot.mvc.annotation.ApiCommand;
-import com.zhuanglide.micrboot.mvc.annotation.ApiMethod;
-import com.zhuanglide.micrboot.mvc.annotation.ApiParam;
-import com.zhuanglide.micrboot.mvc.annotation.ApiPathVariable;
+import com.zhuanglide.micrboot.mvc.annotation.*;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -53,5 +50,10 @@ public class ApiCommandTest{
         res.put("name", name);
         mv.setResult(res);
         return mv;
+    }
+
+    @ApiMethod("/body/{id}")
+    public String body(@ApiPathVariable("id")int id,@ApiRequestBody String body){
+        return body + "\n" + id;
     }
 }
