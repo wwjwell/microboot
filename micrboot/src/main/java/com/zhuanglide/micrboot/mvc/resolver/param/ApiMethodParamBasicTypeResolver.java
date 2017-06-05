@@ -33,11 +33,12 @@ public class ApiMethodParamBasicTypeResolver extends AbstractApiMethodParamResol
             Type type = apiMethodParam.getParamType();
             Annotation[] paramAnnotations = apiMethodParam.getParamAnnotations();
             String paramValue = null;
+            String paramName = apiMethodParam.getParamName();
             if (paramAnnotations != null) {
                 for (Annotation paramAnnotation : paramAnnotations) {
                     if (paramAnnotation instanceof ApiParam) {
                         ApiParam apiParamAnnotation = (ApiParam) paramAnnotation;
-                        String paramName = apiParamAnnotation.value();
+                        paramName = apiParamAnnotation.value();
                         String paramDefaultValue = apiParamAnnotation.defaultValue();
                         paramValue = request.getParameter(paramName);
                         if (apiParamAnnotation.required() && paramValue == null) {
@@ -56,10 +57,15 @@ public class ApiMethodParamBasicTypeResolver extends AbstractApiMethodParamResol
                         break;
                     }else if(paramAnnotation instanceof ApiRequestBody){
                         paramValue = request.getBody();
+                        break;
                     }
                 }
             }
-            return convert(type, paramValue);
+            try {
+                return convert(type, paramValue);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("convert param failed,paramName=" + paramName + ",type=" + type + ",value=" + paramValue);
+            }
         }
         return null;
     }
