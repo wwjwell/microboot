@@ -16,13 +16,21 @@ public class DefaultExceptionResolver implements ExceptionResolver {
     private Logger logger = LoggerFactory.getLogger(DefaultExceptionResolver.class);
     @Override
     public void resolveException(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response,Throwable ex) {
-        logger.error("", ex);
-        String msg = ex.getMessage();
-        if (null == msg) {
-            msg = String.valueOf(ex);
+        if((ex instanceof IllegalArgumentException) && ex.getMessage()!=null){
+            logger.warn("", ex);
+        }else{
+            logger.error("", ex);
         }
-        response.setContent(msg);
         response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+        try {
+            String msg = ex.getMessage();
+            if (null == msg) {
+                msg = ex.toString();
+            }
+            response.setContent(msg);
+        } catch (Exception e) {
+            response.setContent(String.valueOf(e));
+        }
     }
 
     @Override

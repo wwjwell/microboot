@@ -69,7 +69,8 @@ public class HandlerExecuteChain {
         if (null != e) {
             //do exception
             triggerException(request, response, e);
-        }else if (!ObjectUtils.isEmpty(apiInterceptors)) {
+        }
+        if (!ObjectUtils.isEmpty(apiInterceptors)) {
             for (int i = this.interceptorIndex; i >= 0; i--) {
                 ApiInterceptor interceptor = apiInterceptors.get(i);
                 try {
