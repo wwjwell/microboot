@@ -21,26 +21,26 @@
 - 1、后端的纯接口，只是http的request 和response 交互，不涉及jsp等模板，j2ee的规范在这方面不简洁
 - 2、微服务越来越多的，springBoot优势越来越大，但是原则上还是没有脱离web容器，而一个简单的http server 可能更是一种换汤换药的方式
 - 3、多接口的合并。（例：APP跟后端服务的http调用，这样可能省时、省流量。）
-    
-#### TIPS：这一版是还没有经过线上的考验
-    
-    目前micrboot正在做性能测试,将对比tomcat,只做Http解码的Netty服务, 后面在末尾增加性能测试报告(非专业)
-    micrboot现在只是一个架子，还没有在正式环境中运行过，甚至完整的测试过，有任何问题，请发issue
+
+#### TIPS：已经经过线上考验
+
+    目前micrboot正在做性能测试,将对比tomcat,只做Http解码的Netty服务,性能测试与tomcat相比占用系统资源更少
+    micrboot已经运用于生产环境，运行平稳，如果有任何问题，请发issue
 
 ## 怎么启动
 * maven配置
-````xml
+```
     <dependency>
       <groupId>com.zhuanglide</groupId>
       <artifactId>micrboot</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
-````
+```
 * 设置spring配置文件
 
 具体可以参照micrboot-demo/src/main/resources/api.xml
-````xml
+```
     <context:component-scan base-package="com.zhuanglide.micrboot.demo.**">
         <!-- 扫描ApiCommand注解 -->
         <context:include-filter type="annotation" expression="com.zhuanglide.micrboot.mvc.annotation.ApiCommand"/>
@@ -50,10 +50,10 @@
     <bean name="server" class="com.zhuanglide.micrboot.Server">
         <property name="port" value="8080"/> <!-- set port=8080 -->
     </bean>
-````
+```
 * 增加业务接口 
-micrboot-demo/src/main/java/com.zhuanglide.micrboot.demo.command.ApiCommandTest
-````java
+  micrboot-demo/src/main/java/com.zhuanglide.micrboot.demo.command.ApiCommandTest
+```
     @ApiCommand
     public class ApiCommandTest{
         @ApiMethod("/t1")
@@ -91,33 +91,33 @@ micrboot-demo/src/main/java/com.zhuanglide.micrboot.demo.command.ApiCommandTest
                 return mv;
             }
     }
-````
+```
 
 * 怎么调用
-如上例子：http://localhost:8080/t1?name=哈哈&age=123
-  
+  如上例子：http://localhost:8080/t1?name=哈哈&age=123
+
  返回：
- ```json
+ ```
 {
     "b": 1491034714263,
     "age": 123,
     "name": "哈哈",
     "a": "我的家"
 }
-```
+ ```
 具体可以参照micrboot-demo/src/main/java/com.zhuanglide.micrboot.demo.Main
-````java
+```
     public static void main(String[] args) {
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:api.xml");
         Server server = context.getBean(Server.class);
         server.start();
     }
-````
+```
 
 
 ## 拦截器
 * 类似spring MVC的拦截器
-````java
+```
     public class TestInterceptor extends AbstractApiInterceptor {
         int order ; //拦截器顺序
         //分发之前，甚至可以更改最终invoke的接口
@@ -141,25 +141,25 @@ micrboot-demo/src/main/java/com.zhuanglide.micrboot.demo.command.ApiCommandTest
             super.afterHandle(mapping, modelView, request, response, throwable);
         }
     }
-````
+```
 增加拦截器，需要在spring配置文件中显示调用
-````xml
+```
     <bean class="com.zhuanglide.micrboot.demo.interceptor.TestInterceptor">
         <property name="order" value="1"/>
     </bean>
-````
+```
 
 ## 多接口合并
 
 * 设置spring配置文件 需要增加一个设置
 
 参考micrboot-demo/src/main/resources/api.xml
-```xml
+```
     <bean class="com.zhuanglide.micrboot.mvc.ApiDispatcher"/>
 ```
 
 简单示例，在实际生产中，可以根据约定，自动解析要执行的接口，如果对执行顺序无要求，最好使用多线程的方式去执行，如果有严格要求，需要顺序的执行，使用者可以灵活掌握。
-```java
+```
 @ApiCommand("batch")
 public class BatchCommndTest {
     @Autowired(required = false)
@@ -199,7 +199,7 @@ public class BatchCommndTest {
 }
 ```
 * 上述batch/run返回结果 http://localhost:8080/batch/run
-```json
+```
 {
   "t2": {
     "gaga": 1491035540912,
@@ -212,4 +212,39 @@ public class BatchCommndTest {
     "a": "我的家"
   }
 }
+```
+
+## 自定义参数注入
+* 自定义要注入的参数,例
+```
+public class CustomerParam {
+    public String customer;
+}
+```
+* 创建ApiMethodParamResolver来处理参数注入
+```
+public class CustomerApiMethodParamResolver extends 	AbstractApiMethodParamResolver {
+    @Override
+    public boolean support(ApiMethodParam apiMethodParam) {
+        return apiMethodParam.getParamType().equals(CustomerParam.class);
+    }
+
+    @Override
+    public Object getParamObject(ApiMethodParam apiMethodParam, HttpContextRequest request, HttpContextResponse response) throws Exception {
+        CustomerParam param = new CustomerParam();
+        param.customer = "哈哈，customer";
+        return param;
+    }
+}
+```
+* spring声明改处理类
+```
+<bean class="com.zhuanglide.micrboot.demo.resolver.CustomerApiMethodParamResolver"/>
+```
+* 使用
+```
+@ApiMethod("cus")
+    public String cus(CustomerParam param) {
+        return param.customer;
+    }
 ```
