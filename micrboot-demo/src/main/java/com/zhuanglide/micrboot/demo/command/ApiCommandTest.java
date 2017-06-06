@@ -1,5 +1,6 @@
 package com.zhuanglide.micrboot.demo.command;
 
+import com.zhuanglide.micrboot.demo.resolver.CustomerParam;
 import com.zhuanglide.micrboot.mvc.ModelAndView;
 import com.zhuanglide.micrboot.mvc.annotation.*;
 
@@ -55,5 +56,10 @@ public class ApiCommandTest{
     @ApiMethod("/body/{id}")
     public String body(@ApiPathVariable("id")int id,@ApiRequestBody String body){
         return body + "\n" + id;
+    }
+
+    @ApiMethod("cus")
+    public String cus(CustomerParam param) {
+        return param.customer;
     }
 }

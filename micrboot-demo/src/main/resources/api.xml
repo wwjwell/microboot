@@ -21,8 +21,9 @@
         <property name="order" value="1"/>
     </bean>
 
-    <bean class="com.zhuanglide.micrboot.mvc.resolver.view.StringViewResolver">
-    </bean>
+    <bean class="com.zhuanglide.micrboot.mvc.resolver.view.StringViewResolver"/>
+
+    <bean class="com.zhuanglide.micrboot.demo.resolver.CustomerApiMethodParamResolver"/>
 
     <!-- access logger-->
     <bean class="com.zhuanglide.micrboot.mvc.interceptor.AccessInterceptor">

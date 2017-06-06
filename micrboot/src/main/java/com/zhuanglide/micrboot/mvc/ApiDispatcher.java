@@ -307,34 +307,23 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
 
 
     protected void initViewResolver(ApplicationContext context){
+        this.viewResolvers = getDefaultStrategies(context, ViewResolver.class);
         Map<String, ViewResolver> matchingBeans =
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(context, ViewResolver.class, true, false);
         if (!matchingBeans.isEmpty()) {
-            this.viewResolvers = new ArrayList<ViewResolver>(matchingBeans.values());
-        }
-        if (this.viewResolvers == null) {
-            this.viewResolvers = getDefaultStrategies(context, ViewResolver.class);
-            if (logger.isDebugEnabled()) {
-                logger.debug("No ViewResolvers found ,using default");
-            }
+            this.viewResolvers.addAll(matchingBeans.values());
         }
         AnnotationAwareOrderComparator.sort(this.viewResolvers);
     }
 
     protected void initApiMethodParamResolvers(ApplicationContext context){
+        this.apiMethodParamResolvers = getDefaultStrategies(context, ApiMethodParamResolver.class);
         Map<String, ApiMethodParamResolver> matchingBeans =
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(context, ApiMethodParamResolver.class, true, false);
         if (!matchingBeans.isEmpty()) {
-            this.apiMethodParamResolvers = new ArrayList<ApiMethodParamResolver>(matchingBeans.values());
-            AnnotationAwareOrderComparator.sort(this.viewResolvers);
+            this.apiMethodParamResolvers.addAll(matchingBeans.values());
         }
-
-        if (this.apiMethodParamResolvers == null) {
-            this.apiMethodParamResolvers = getDefaultStrategies(context, ApiMethodParamResolver.class);
-            if (logger.isDebugEnabled()) {
-                logger.debug("No ApiMethodParamResolver found ,using default");
-            }
-        }
+        AnnotationAwareOrderComparator.sort(this.apiMethodParamResolvers);
     }
 
     protected void initExceptionResolvers(ApplicationContext context) {
