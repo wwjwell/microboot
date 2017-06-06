@@ -45,10 +45,12 @@
         <!-- 扫描ApiCommand注解 -->
         <context:include-filter type="annotation" expression="com.zhuanglide.micrboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
-        
+    <bean name="server" class="com.zhuanglide.micrboot.ServerConfig">
+        <property name="port" value="8080"/> <!-- set port=8080 -->
+    </bean>    
     <!-- config server -->
     <bean name="server" class="com.zhuanglide.micrboot.Server">
-        <property name="port" value="8080"/> <!-- set port=8080 -->
+        <property name="serverConfig" ref="serverConfig"/> <!-- set port=8080 -->
     </bean>
 ```
 * 增加业务接口 
