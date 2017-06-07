@@ -180,7 +180,20 @@ public class HttpContextRequest implements Serializable {
 
     @Override
     public HttpContextRequest clone() throws CloneNotSupportedException {
-        HttpContextRequest _request = new HttpContextRequest(this.request, this.charset);
+        return copy();
+    }
+
+    public HttpContextRequest copy() throws CloneNotSupportedException {
+        HttpContextRequest _request = new HttpContextRequest(this.request,this.charset);
+        _request.requestParamsMap.putAll(this.requestParamsMap);
+        _request.cookies.putAll(this.cookies);
+        if (null != this.attachment) {
+            if (_request.attachment == null) {
+                _request.attachment = new HashMap<String, Object>();
+            }
+            _request.attachment.putAll(this.attachment);
+        }
+        _request.body = this.getBody();
         return _request;
     }
 
