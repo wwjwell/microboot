@@ -17,11 +17,12 @@ public class DefaultExceptionResolver implements ExceptionResolver {
     @Override
     public void resolveException(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response,Throwable ex) {
         if((ex instanceof IllegalArgumentException) && ex.getMessage()!=null){
+            response.setStatus(HttpResponseStatus.BAD_REQUEST);
             logger.warn("", ex);
         }else{
+            response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
             logger.error("", ex);
         }
-        response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
         try {
             String msg = ex.getMessage();
             if (null == msg) {
