@@ -4,7 +4,6 @@ package com.zhuanglide.micrboot.mvc;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Map;
 
 /**
  * ApiMapping包装
@@ -22,8 +21,6 @@ public class ApiMethodMapping {
     private String[] paramNames;
 
     private Type[] parameterTypes;
-
-    private Map<Class,Object> extendFields;
 
     private Annotation[][] paramAnnotations;
 
@@ -77,14 +74,6 @@ public class ApiMethodMapping {
 
     public Object getProxyTargetBean() {
         return proxyTargetBean;
-    }
-
-    public Map<Class, Object> getExtendFields() {
-        return extendFields;
-    }
-
-    public void setExtendFields(Map<Class, Object> extendFields) {
-        this.extendFields = extendFields;
     }
 
     public void setProxyTargetBean(Object proxyTargetBean) {

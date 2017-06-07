@@ -331,7 +331,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                 BeanFactoryUtils.beansOfTypeIncludingAncestors(context, ExceptionResolver.class, true, false);
         if (!matchingBeans.isEmpty()) {
             this.exceptionResolvers = new ArrayList<ExceptionResolver>(matchingBeans.values());
-            AnnotationAwareOrderComparator.sort(this.viewResolvers);
+            AnnotationAwareOrderComparator.sort(this.exceptionResolvers);
         }
 
         if (this.exceptionResolvers == null) {
@@ -452,7 +452,6 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                         }
                     }
                 }
-
                 if (isResolver && null == paramObjectValue) {
                     throw new IllegalArgumentException("can't resolver param=" + paramName + ",paramType=" + type);
                 }
