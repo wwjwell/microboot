@@ -452,14 +452,6 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                         }
                     }
                 }
-                if (paramObjectValue == null) {
-                    //set extend attribute
-                    if (mapping.getExtendFields() != null) {
-                        if (mapping.getExtendFields().containsKey(paramName)) {
-                            paramObjectValue = mapping.getExtendFields().get(paramName);
-                        }
-                    }
-                }
 
                 if (isResolver && null == paramObjectValue) {
                     throw new IllegalArgumentException("can't resolver param=" + paramName + ",paramType=" + type);
