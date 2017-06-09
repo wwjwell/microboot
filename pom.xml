@@ -12,7 +12,7 @@
     <name>micrboot-parent</name>
     <groupId>com.zhuanglide</groupId>
     <artifactId>micrboot-parent</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.1</version>
     <description>http server not follow J2EE using Netty</description>
 
     <modules>
