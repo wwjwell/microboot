@@ -47,7 +47,6 @@ public class HandlerExecuteChain {
             for (int i = 0; i < apiInterceptors.size(); i++) {
                 ApiInterceptor interceptor = apiInterceptors.get(i);
                 if (!interceptor.preDispatch(request, response)) {
-                    triggerAfterCompletion(request, response, null);
                     return false;
                 }
                 this.interceptorIndex = i;

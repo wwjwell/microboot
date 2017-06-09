@@ -30,6 +30,6 @@ public abstract class AbstractApiInterceptor implements ApiInterceptor,Ordered {
 
     @Override
     public int getOrder() {
-        return Ordered.LOWEST_PRECEDENCE;
+        return order;
     }
 }
