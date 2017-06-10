@@ -1,31 +1,40 @@
 # micrboot
-#### 干什么的
-    基于netty高性能网络框架的HTTP RESTful服务器，非常适合后台接口的微服务。
-    和作者一样不喜欢微服务还要依赖一个重量级的WEB容器的同学,绝对是不二的选择
+#### 是什么，干什么
+  基于netty高性能网络框架的HTTP RESTful服务器，非常适合后台接口的微服务。
+  和作者一样不喜欢微服务还要依赖一个重量级的WEB容器的同学,绝对是不二的选择
 #### micrboot架构图
 - ![image](https://github.com/wwjwell/micrboot/raw/master/docs/micrboot.png)
 #### 优点
 - 设计思想基于springMVC，用法也是springMVC的简化版（只不过注解不一样，也更简陋，不过对于后端接口服务，基本能满足所有的需要）
-- 使用简单，上手快，用法也是springMVC的简化版，只要学过springMVC 基本没有任何学习瓶颈
+- 使用简单，上手快，只要学过springMVC 基本没有任何学习瓶颈
 - 多接口合并
 - netty网络框架作为服务，剔除了web容器，更轻量，部署更简单
+- 性能优越，默认配置不属于各种调优后的tomcat性能，现在环境都是虚拟机，tomcat配置你确定你能调优好？
 - 没有j2ee规范，就是最直接RESTful架构的http服务器
 
 #### 缺点
 - 没有使用j2ee的规范，所以view层是无法对jsp渲染，现在也只做了JSON 和String 两种，后续会加上freemark 和静态资源，
-- 没有springMVC灵活，自定义上也更加局限（不过后端服务，也不需要那么灵活）
-- 不是标准，一般不容易被接受（ 唉！）
+- 不是标准，非权威，一般不容易被接受（ 唉！）
 
 ### 为什么写micrboot 
-#### springBoot越来越流行的今天，为什么要写micrboot？
+####   Why？
 - 1、后端的纯接口，只是http的request 和response 交互，不涉及jsp等模板，j2ee的规范在这方面不简洁
 - 2、微服务越来越多的，springBoot优势越来越大，但是原则上还是没有脱离web容器，而一个简单的http server 可能更是一种换汤换药的方式
 - 3、多接口的合并。（例：APP跟后端服务的http调用，这样可能省时、省流量。）
+- 4、配置简陋的虚拟机上表现良好
+- 5、流量异常暴增，平稳支撑，系统负载也不会像tomcat那样嗷嗷飙升
+#### 表现
+  目前micrboot正在做性能测试,将对比tomcat,只做Http解码的Netty服务,性能测试与tomcat相比占用系统资源更少
+  micrboot已经运用于生产环境，运行平稳，我直接放上micrboot的线上表现
+* 两台docker虚拟机，配置是2核8G内存，STAT硬盘400G。
 
-#### TIPS：已经经过线上考验
+| 指标     | 单位      | 监控                                       |
+| :----- | :------ | :--------------------------------------- |
+| 流量     | TPS/min | <img src="docs/qps_min.png" width="600" height = "300" alt="图片名称" align=center /> |
+| 平均耗时   | ms      | <img src="docs/cost.png" width="600" height = "300" alt="图片名称" align=center /> |
+| 内存使用率  | 8G-%    | <img src="docs/mem_use.png" width="600" height = "200" alt="图片名称" align=center /> |
+| CPU使用率 | 100%    | <img src="docs/cpu_use.png" width="600" height = "200" alt="图片名称" align=center /> |
 
-    目前micrboot正在做性能测试,将对比tomcat,只做Http解码的Netty服务,性能测试与tomcat相比占用系统资源更少
-    micrboot已经运用于生产环境，运行平稳，如果有任何问题，请发issue
 
 ## 怎么启动
 * maven配置
