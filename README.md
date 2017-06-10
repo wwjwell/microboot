@@ -27,14 +27,13 @@
   目前micrboot正在做性能测试,将对比tomcat,只做Http解码的Netty服务,性能测试与tomcat相比占用系统资源更少
   micrboot已经运用于生产环境，运行平稳，我直接放上micrboot的线上表现
 * 两台docker虚拟机，配置是2核8G内存，STAT硬盘400G。
-* 流量监控 单位:TPS/min
-  ![image](https://github.com/wwjwell/micrboot/raw/master/docs/qps_min.png) 
-* 接口平均耗时 单位:ms
-  ![image](https://github.com/wwjwell/micrboot/raw/master/docs/cost.png) 
-* 内存使用 MEM:8G 
-  ![image](https://github.com/wwjwell/micrboot/raw/master/docs/mem_use.png) 
-* CPU使用率 
-  ![image](https://github.com/wwjwell/micrboot/raw/master/docs/cpu_use.png) 
+
+| 指标     | 单位      | 监控                                       |
+| :----- | :------ | :--------------------------------------- |
+| 流量     | TPS/min | ![image](https://github.com/wwjwell/micrboot/raw/master/docs/qps_min.png =100x100) |
+| 平均耗时   | ms      | ![image](https://github.com/wwjwell/micrboot/raw/master/docs/cost.png =100x100) |
+| 内存使用率  | 8G-%    | ![image](https://github.com/wwjwell/micrboot/raw/master/docs/cost.png =100x100) |
+| CPU使用率 | 100%    | ![image](https://github.com/wwjwell/micrboot/raw/master/docs/cpu_use.png =100x100) |
 
 
 ## 怎么启动
