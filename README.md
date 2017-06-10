@@ -30,10 +30,10 @@
 
 | 指标     | 单位      | 监控                                       |
 | :----- | :------ | :--------------------------------------- |
-| 流量     | TPS/min | ![image](https://github.com/wwjwell/micrboot/raw/master/docs/qps_min.png =100x100) |
-| 平均耗时   | ms      | ![image](https://github.com/wwjwell/micrboot/raw/master/docs/cost.png =100x100) |
-| 内存使用率  | 8G-%    | ![image](https://github.com/wwjwell/micrboot/raw/master/docs/cost.png =100x100) |
-| CPU使用率 | 100%    | ![image](https://github.com/wwjwell/micrboot/raw/master/docs/cpu_use.png =100x100) |
+| 流量     | TPS/min | <img src="docs/qps_min.png" width="400" height = "100" alt="图片名称" align=center /> |
+| 平均耗时   | ms      | <img src="docs/cost.png" width="400" height = "150" alt="图片名称" align=center /> |
+| 内存使用率  | 8G-%    | <img src="docs/mem_use.png" width="400" height = "100" alt="图片名称" align=center /> |
+| CPU使用率 | 100%    | <img src="docs/cpu_use.png" width="400" height = "100" alt="图片名称" align=center /> |
 
 
 ## 怎么启动
