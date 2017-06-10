@@ -30,8 +30,8 @@
 
 | 指标     | 单位      | 监控                                       |
 | :----- | :------ | :--------------------------------------- |
-| 流量     | TPS/min | <img src="docs/qps_min.png" width="600" height = "200" alt="图片名称" align=center /> |
-| 平均耗时   | ms      | <img src="docs/cost.png" width="600" height = "200" alt="图片名称" align=center /> |
+| 流量     | TPS/min | <img src="docs/qps_min.png" width="600" height = "300" alt="图片名称" align=center /> |
+| 平均耗时   | ms      | <img src="docs/cost.png" width="600" height = "300" alt="图片名称" align=center /> |
 | 内存使用率  | 8G-%    | <img src="docs/mem_use.png" width="600" height = "200" alt="图片名称" align=center /> |
 | CPU使用率 | 100%    | <img src="docs/cpu_use.png" width="600" height = "200" alt="图片名称" align=center /> |
 
