@@ -12,7 +12,7 @@
     <name>micrboot-parent</name>
     <groupId>com.zhuanglide</groupId>
     <artifactId>micrboot-parent</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <description>http server not follow J2EE using Netty</description>
 
     <modules>
@@ -68,7 +68,7 @@
                         <configuration>
                             <serverId>ossrh</serverId>
                             <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
                         </configuration>
                     </plugin>
                     <plugin>

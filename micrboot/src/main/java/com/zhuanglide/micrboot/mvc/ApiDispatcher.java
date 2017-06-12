@@ -153,9 +153,9 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                 response.setStatus(HttpResponseStatus.NOT_FOUND);
                 return null;
             }
-            if(withInterceptor) {
+            if(withInterceptor && !chain.applyPostHandle(request, response)) {
                 //post handler,you can change params
-                chain.applyPostHandle(request, response);
+                return null;
             }
             //invoke & handler
             return handler(mapping,request,response);

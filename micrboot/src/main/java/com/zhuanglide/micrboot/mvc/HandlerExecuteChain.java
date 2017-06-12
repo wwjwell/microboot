@@ -55,12 +55,15 @@ public class HandlerExecuteChain {
         return true;
     }
 
-    public void applyPostHandle(HttpContextRequest request, HttpContextResponse response) throws Exception {
+    public boolean applyPostHandle(HttpContextRequest request, HttpContextResponse response) throws Exception {
         if (!ObjectUtils.isEmpty(apiInterceptors)) {
             for (ApiInterceptor apiInterceptor : apiInterceptors) {
-                apiInterceptor.postHandler(mapping, request, response);
+                if(!apiInterceptor.postHandler(mapping, request, response)){
+                    return false;
+                }
             }
         }
+        return true;
     }
 
     public void triggerAfterCompletion(HttpContextRequest request, HttpContextResponse response,Throwable e)

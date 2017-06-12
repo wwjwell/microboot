@@ -24,7 +24,7 @@ public interface ApiInterceptor extends Ordered{
      * @param request
      * @param response
      */
-    void postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response);
+    boolean postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response);
 
     /**
      * 作用于invoke之后，可以更改返回值

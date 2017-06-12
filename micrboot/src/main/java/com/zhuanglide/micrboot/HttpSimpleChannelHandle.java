@@ -1,8 +1,10 @@
 package com.zhuanglide.micrboot;
 
+import com.zhuanglide.micrboot.constants.Constants;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,6 +19,8 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * HTTP handle
  */
@@ -26,12 +30,25 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     private ServerConfig serverConfig;
     private ApplicationContext context;
     private ApiDispatcher dispatcher;
+    private ChannelFutureListener listener;
+    private AtomicLong sequence = new AtomicLong(0L);
     /**
      * 初始化
      * @param context
      */
     protected void initStrategies(ApplicationContext context) {
         initApiMethodDispatcher(context);
+        listener = new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                future.channel().close();
+                if(serverConfig.isOpenConnectCostLogger()) {
+                    long reqId = future.channel().attr(Constants.ATTR_REQ_ID).get();
+                    Long startTime = future.channel().attr(Constants.ATTR_CONN_ACTIVE_TIME).get();
+                    logger.info("connect closed,reqId={},cost={}ms", reqId, System.currentTimeMillis() - startTime);
+                }
+            }
+        };
     }
 
     /**
@@ -92,6 +109,14 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.channel().attr(Constants.ATTR_REQ_ID).set(getReqId());
+        ctx.channel().attr(Constants.ATTR_CONN_ACTIVE_TIME).set(System.currentTimeMillis());
+        super.channelActive(ctx);
+    }
+
+
+    @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         super.userEventTriggered(ctx, evt);
         ctx.close();
@@ -119,5 +144,16 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
 
     public void setServerConfig(ServerConfig serverConfig) {
         this.serverConfig = serverConfig;
+    }
+
+    private Long getReqId(){
+        long reqId = sequence.incrementAndGet();
+        if (reqId < 0) {
+            synchronized (this) {
+                sequence.set(0);
+                reqId = sequence.incrementAndGet();
+            }
+        }
+        return reqId;
     }
 }

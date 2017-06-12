@@ -1,6 +1,7 @@
 package com.zhuanglide.micrboot;
 
 import io.netty.channel.epoll.Epoll;
+import org.slf4j.Logger;
 
 import java.nio.charset.Charset;
 
@@ -35,6 +36,8 @@ public class ServerConfig {
 
     private int maxLength = 65536;      //http报文最大长度
     private boolean useChunked = false; //HTTP msg chunk
+    private boolean openMetrics = false; //加入性能监控
+    private boolean openConnectCostLogger = false; //连接耗时日志
     private int bossThreadNum;          //netty boss Thread
     private int workerThreadNum;        //netty work thread
 
@@ -106,4 +109,19 @@ public class ServerConfig {
         this.workerThreadNum = workerThreadNum;
     }
 
+    public boolean isOpenMetrics() {
+        return openMetrics;
+    }
+
+    public void setOpenMetrics(boolean openMetrics) {
+        this.openMetrics = openMetrics;
+    }
+
+    public boolean isOpenConnectCostLogger() {
+        return openConnectCostLogger;
+    }
+
+    public void setOpenConnectCostLogger(boolean openConnectCostLogger) {
+        this.openConnectCostLogger = openConnectCostLogger;
+    }
 }

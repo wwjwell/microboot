@@ -16,7 +16,8 @@ public abstract class AbstractApiInterceptor implements ApiInterceptor,Ordered {
     }
 
     @Override
-    public void postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response) {
+    public boolean postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response) {
+        return true;
     }
 
     @Override

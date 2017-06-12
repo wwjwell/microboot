@@ -18,7 +18,9 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     private Logger logger = LoggerFactory.getLogger(AccessInterceptor.class);
     private String accessLoggerName = this.getClass().getName();
     private Logger accessLogger = LoggerFactory.getLogger(accessLoggerName);
-    private boolean appendHeader = false;
+    private boolean appendHeader = false;       //是否展示header内容
+    private boolean appendParam = true;         //是否展示param内容
+    private boolean appendResponse = false;     //是否展示response内容
     private String split = "|,|";
     protected int order = Ordered.HIGHEST_PRECEDENCE;
 
@@ -32,7 +34,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     }
 
     @Override
-    public void postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response){
+    public boolean postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response){
         StringBuffer params = new StringBuffer();
         if (null != request.getRequestParamsMap() && !request.getRequestParamsMap().isEmpty()) {
             for (Map.Entry<String, List<String>> paramEntry : request.getRequestParamsMap().entrySet()) {
@@ -42,6 +44,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
                 params = params.deleteCharAt(params.length() - 1);
         }
         request.addAttachment(ATTR_REQ_SYS_PARAMS,params.toString());
+        return true;
     }
 
     @Override
@@ -50,17 +53,20 @@ public class AccessInterceptor extends AbstractApiInterceptor {
             long startTime = (Long) request.getAttachment(ATTR_REQ_START_TIME);
             String params = (String) request.getAttachment(ATTR_REQ_SYS_PARAMS);
             StringBuffer log = new StringBuffer();
-            log.append("clientIp=").append(request.getAddress());
             log.append(split);
             log.append("url=").append(request.getRequestUrl());
-            if (appendHeader) {
+            if (isAppendHeader()) {
                 log.append(split);
                 log.append(headers2str(request));
             }
-            log.append(split);
-            log.append("params=").append(params);
-            log.append(split);
-            log.append("response=").append(response.getContent());
+            if(isAppendParam()) {
+                log.append(split);
+                log.append("params=").append(params);
+            }
+            if(isAppendResponse()) {
+                log.append(split);
+                log.append("response=").append(response.getContent());
+            }
             log.append(split);
             log.append("cost=").append((System.currentTimeMillis() - startTime)).append("ms");
             accessLogger.info(log.toString());
@@ -109,5 +115,37 @@ public class AccessInterceptor extends AbstractApiInterceptor {
 
     public void setSplit(String split) {
         this.split = split;
+    }
+
+    public String getAccessLoggerName() {
+        return accessLoggerName;
+    }
+
+    public Logger getAccessLogger() {
+        return accessLogger;
+    }
+
+    public void setAccessLogger(Logger accessLogger) {
+        this.accessLogger = accessLogger;
+    }
+
+    public boolean isAppendHeader() {
+        return appendHeader;
+    }
+
+    public boolean isAppendParam() {
+        return appendParam;
+    }
+
+    public void setAppendParam(boolean appendParam) {
+        this.appendParam = appendParam;
+    }
+
+    public boolean isAppendResponse() {
+        return appendResponse;
+    }
+
+    public void setAppendResponse(boolean appendResponse) {
+        this.appendResponse = appendResponse;
     }
 }
