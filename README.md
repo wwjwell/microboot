@@ -25,19 +25,6 @@ micrboot设计思想源于springMVC，摒弃J2EE繁杂的规范，更加纯粹�
 # micrboot依赖情况
 micrboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中引入这4个jar
 
-# micrboot性能如何
-
-作者做过几次性能测试，每次和每次都不是很一样，搞得我很郁闷，可能与我测试方式和我所拥有的资源有关。不过整体表现在性能上不输于tomcat，尤其在相同流量上，系统负载能比tomcat低2到3倍。
-无图无真相，作者贴上micrboot生产环境的表现，当然这不是micrboot最优的表现，线上还有过比这个指标高2到4倍的流量(当然具体性能还跟业务复杂性相关）
-* 两台docker虚拟机，配置是2核8G内存，STAT硬盘400G。
-
-| 指标     | 单位      | 监控                                       |
-| :----- | :------ | :--------------------------------------- |
-| 流量     | TPS/min | <img src="docs/qps_min.png" width="600" height = "300" alt="图片名称" align=center /> |
-| 平均耗时   | ms      | <img src="docs/cost.png" width="600" height = "300" alt="图片名称" align=center /> |
-| 内存使用率  | 8G-%    | <img src="docs/mem_use.png" width="600" height = "200" alt="图片名称" align=center /> |
-| CPU使用率 | 100%    | <img src="docs/cpu_use.png" width="600" height = "200" alt="图片名称" align=center /> |
-
 # micrboot怎么使用
 ### maven配置
 ```
