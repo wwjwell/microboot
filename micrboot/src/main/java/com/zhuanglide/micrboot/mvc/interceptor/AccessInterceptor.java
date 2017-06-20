@@ -3,6 +3,7 @@ package com.zhuanglide.micrboot.mvc.interceptor;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -22,7 +23,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     private boolean appendParam = true;         //是否展示param内容
     private boolean appendResponse = false;     //是否展示response内容
     private String split = "|,|";
-    protected int order = Ordered.HIGHEST_PRECEDENCE;
+    protected int order = Ordered.HIGHEST_PRECEDENCE + 100;
 
     public final static String ATTR_REQ_START_TIME = "REQ_START_TIME";
     public final static String ATTR_REQ_SYS_PARAMS = "REQ_SYS_PARAMS";
@@ -53,6 +54,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
             long startTime = (Long) request.getAttachment(ATTR_REQ_START_TIME);
             String params = (String) request.getAttachment(ATTR_REQ_SYS_PARAMS);
             StringBuffer log = new StringBuffer();
+            log.append("host=").append(request.getHeader(HttpHeaderNames.HOST));
             log.append(split);
             log.append("url=").append(request.getRequestUrl());
             if (isAppendHeader()) {
@@ -63,6 +65,8 @@ public class AccessInterceptor extends AbstractApiInterceptor {
                 log.append(split);
                 log.append("params=").append(params);
             }
+            log.append(split);
+            log.append("status=").append(response.getStatus().code());
             if(isAppendResponse()) {
                 log.append(split);
                 log.append("response=").append(response.getContent());

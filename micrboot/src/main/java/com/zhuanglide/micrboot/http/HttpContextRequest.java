@@ -3,6 +3,7 @@ package com.zhuanglide.micrboot.http;
 
 import com.zhuanglide.micrboot.util.HttpUtils;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.FileUpload;
@@ -20,7 +21,6 @@ import java.util.Map;
 public class HttpContextRequest implements Serializable {
     private static final long serialVersionUID = -2844694054296931417L;
     private long time;      //请求时间
-    private String address;
     private String httpMethod;  //GET POST DELETE
     private String requestUrl;  //请求uri
     private HttpHeaders headers;  //header
@@ -132,22 +132,6 @@ public class HttpContextRequest implements Serializable {
         return null;
     }
 
-    public String getAddress() {
-        if(null == address) {
-            address = request.headers().get("X-Forwarded-For");
-            if(address == null || address.length() == 0 || "unknown".equalsIgnoreCase(address)) {
-                address = request.headers().get("Proxy-Client-IP");
-            }
-            if(address == null || address.length() == 0 || "unknown".equalsIgnoreCase(address)) {
-                address = request.headers().get("Proxy-Client-IP");
-            }
-            if(address == null || address.length() == 0 || "unknown".equalsIgnoreCase(address)) {
-                address = request.headers().get("WL-Proxy-Client-IP");
-            }
-        }
-        return address;
-    }
-
     public FullHttpRequest getRequest() {
         return request;
     }
@@ -199,16 +183,16 @@ public class HttpContextRequest implements Serializable {
 
     public String getBody() {
         if (null == body) {
-            synchronized (this) {
-                int len = request.content().readableBytes();
-                if(len >0) {
-                    byte[] bytes = new byte[len];
-                    request.content().readBytes(bytes, 0, len);
-                    body = new String(bytes,charset);
-                }else{
-                    body = "";
-                }
+            request.content().markReaderIndex();
+            int len = request.content().readableBytes();
+            if (len > 0) {
+                byte[] bytes = new byte[len];
+                request.content().readBytes(bytes, 0, len);
+                body = new String(bytes, charset);
+            } else {
+                body = "";
             }
+            request.content().resetReaderIndex();
         }
         return body;
     }

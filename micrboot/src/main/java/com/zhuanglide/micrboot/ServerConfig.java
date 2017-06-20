@@ -33,7 +33,7 @@ public class ServerConfig {
     private Charset charset = Charset.forName("UTF-8");   //默认编码
     private boolean useEpoll = true;    //使用epoll
     private int port = 8080;            //端口
-
+    private int idleTimeout = 30;              //超时时间
     private int maxLength = 65536;      //http报文最大长度
     private boolean useChunked = false; //HTTP msg chunk
     private boolean openMetrics = false; //加入性能监控
@@ -123,5 +123,13 @@ public class ServerConfig {
 
     public void setOpenConnectCostLogger(boolean openConnectCostLogger) {
         this.openConnectCostLogger = openConnectCostLogger;
+    }
+
+    public int getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    public void setIdleTimeout(int idleTimeout) {
+        this.idleTimeout = idleTimeout;
     }
 }

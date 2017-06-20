@@ -40,17 +40,8 @@ public class Server implements ApplicationContextAware,InitializingBean {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(socketChannelClass)
-                    .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
-                        @Override
-                        public void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new HttpServerCodec());
-                            ch.pipeline().addLast(new HttpObjectAggregator(getServerConfig().getMaxLength()));
-                            if(getServerConfig().isUseChunked()) {//是否起用文件的大数据流
-                                ch.pipeline().addLast(new ChunkedWriteHandler());
-                            }
-                            ch.pipeline().addLast(httpSimpleChannelHandle);
-                        }
-                    }).option(ChannelOption.SO_BACKLOG, 128)
+                    .childHandler(new HttpChannelInitializer(serverConfig,httpSimpleChannelHandle))
+                    .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.TCP_NODELAY,true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             logger.info("server start at port {}",getServerConfig().getPort());

@@ -16,9 +16,9 @@ public class TestInterceptor2 extends AbstractApiInterceptor {
     }
 
     @Override
-    public void postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response) {
+    public boolean postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response) {
         System.out.println("TestInterceptor2 postHandler url="+request.getRequestUrl());
-        super.postHandler(mapping, request, response);
+        return super.postHandler(mapping, request, response);
     }
 
     @Override

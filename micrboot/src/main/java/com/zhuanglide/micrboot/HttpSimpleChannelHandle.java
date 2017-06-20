@@ -11,6 +11,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -69,7 +70,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullRequest)
             throws Exception {
         if (fullRequest.decoderResult().isFailure()) {
-            ctx.writeAndFlush(new DefaultHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST)).addListener(ChannelFutureListener.CLOSE);
+            sendResponse(new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST),ctx);
             return;
         }
         //转化为 api 能处理的request\response
@@ -104,9 +105,11 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             sendResponse(response, ctx);
         } catch (Exception e) {
             logger.error("", e);
-            ctx.close();
+            sendResponse(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST),ctx);
         }
     }
+
+
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -118,12 +121,16 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        super.userEventTriggered(ctx, evt);
-        ctx.close();
+        if(evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            logger.warn("user event triggered ,event.state={},address={}", event.state(), ctx.channel().remoteAddress());
+            ctx.close();
+        }
+        super.userEventTriggered(ctx,evt);
     }
 
-    private void sendResponse(FullHttpResponse response, ChannelHandlerContext ctx) {
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    private void sendResponse(HttpResponse response, ChannelHandlerContext ctx) {
+        ctx.writeAndFlush(response).addListener(listener);
     }
 
 
