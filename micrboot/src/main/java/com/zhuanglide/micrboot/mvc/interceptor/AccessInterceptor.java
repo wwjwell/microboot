@@ -26,7 +26,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     private String split = "|,|";
     protected int order = Ordered.HIGHEST_PRECEDENCE + 100;
 
-    public final static String ATTR_REQ_s START_TIME = "REQ_START_TIME";
+    public final static String ATTR_REQ_START_TIME = "REQ_START_TIME";
     public final static String ATTR_REQ_SYS_PARAMS = "REQ_SYS_PARAMS";
 
     @Override
