@@ -66,21 +66,31 @@ public class HandlerExecuteChain {
         return true;
     }
 
-    public void triggerAfterCompletion(HttpContextRequest request, HttpContextResponse response,Throwable e)
-            throws Exception {
-        if (null != e) {
-            //do exception
-            triggerException(request, response, e);
+    public void applyAfterHandler(HttpContextRequest request, HttpContextResponse response,Throwable e) throws Throwable {
+        if (!ObjectUtils.isEmpty(apiInterceptors)) {
+            for (ApiInterceptor apiInterceptor : apiInterceptors) {
+                apiInterceptor.afterHandle(mapping, result, request, response, e);
+            }
         }
+        if (null != e) {
+            throw e;
+        }
+    }
+
+    public void triggerAfterCompletion(HttpContextRequest request, HttpContextResponse response,Throwable e) throws Throwable {
         if (!ObjectUtils.isEmpty(apiInterceptors)) {
             for (int i = this.interceptorIndex; i >= 0; i--) {
                 ApiInterceptor interceptor = apiInterceptors.get(i);
                 try {
-                    interceptor.afterHandle(mapping, result, request, response, e);
+                    interceptor.afterCompletion(mapping, request, response, e);
                 } catch (Throwable ex2) {
                     logger.error("ApiInterceptor.afterCompletion threw exception", ex2);
+                    throw ex2;
                 }
             }
+        }
+        if (null != e) {
+            throw e;
         }
     }
 

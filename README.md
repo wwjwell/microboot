@@ -19,7 +19,7 @@ micrboot天生是为了后端纯接口服务做得框架，具有开发、部署
 - 不是标准，非权威
 
 # micrboot设计思想
-micrboot设计思想源于springMVC，摒弃J2EE繁杂的规范，更加纯粹的进行HTTP编程，不依赖于任何第三方容器，运用高性能的Netty框架做server ，以及netty的线程模型来处理业务，后续作者想拓展为更为轻量级的Actor模式的并发模型，使性能更加强劲。一旦你使用了micrboot，或许你再也不想用tomcat做你的容器了。
+micrboot设计思想源于springMVC，摒弃J2EE繁杂的规范，更加纯粹的进行HTTP编程，不依赖于任何第三方容器，运用高性能的Netty框架做server ，以及netty的线程模型来处理业务。一旦你使用了micrboot，或许你再也不想用tomcat做你的容器了。
 - ![image](https://github.com/wwjwell/micrboot/raw/master/docs/micrboot.png)
 
 # micrboot依赖情况

@@ -1,8 +1,10 @@
 package com.zhuanglide.micrboot.mvc.interceptor;
 
+import com.zhuanglide.micrboot.constants.Constants;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ApiMethodMapping;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -48,27 +50,27 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     }
 
     @Override
-    public void afterHandle(ApiMethodMapping mapping, Object modelView, HttpContextRequest request, HttpContextResponse response, Throwable throwable) {
+    public void afterCompletion(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response, Throwable throwable) {
         try {
             long startTime = (Long) request.getAttachment(ATTR_REQ_START_TIME);
             String params = (String) request.getAttachment(ATTR_REQ_SYS_PARAMS);
             StringBuffer log = new StringBuffer();
-            log.append(split);
-            log.append("url=").append(request.getRequestUrl());
-            if (isAppendHeader()) {
-                log.append(split);
-                log.append(headers2str(request));
+            log.append(split).append("reqId=").append(request.getAttachment(Constants.REQ_ID));
+            log.append(split).append(request.getHttpMethod());
+            log.append(split).append(request.getHttpVersion().text());
+            log.append(split).append(request.getHeader(HttpHeaderNames.HOST));
+            log.append(split).append("url=").append(request.getRequestUrl());
+            if (appendHeader) {
+                log.append(split).append(headers2str(request));
             }
             if(isAppendParam()) {
-                log.append(split);
-                log.append("params=").append(params);
+                log.append(split).append("params=").append(params);
             }
+            log.append(split).append("status=").append(response.getStatus().code());
             if(isAppendResponse()) {
-                log.append(split);
-                log.append("response=").append(response.getContent());
+                log.append(split).append("response=").append(response.getContent());
             }
-            log.append(split);
-            log.append("cost=").append((System.currentTimeMillis() - startTime)).append("ms");
+            log.append(split).append("cost=").append((System.currentTimeMillis() - startTime)).append("ms");
             accessLogger.info(log.toString());
         } catch (Exception ex) {
             logger.error("", ex);

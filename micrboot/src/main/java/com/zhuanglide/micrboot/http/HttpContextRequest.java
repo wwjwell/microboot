@@ -4,6 +4,7 @@ package com.zhuanglide.micrboot.http;
 import com.zhuanglide.micrboot.util.HttpUtils;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.FileUpload;
 
@@ -23,6 +24,7 @@ public class HttpContextRequest implements Serializable {
     private String address;
     private String httpMethod;  //GET POST DELETE
     private String requestUrl;  //请求uri
+    private HttpVersion httpVersion;
     private HttpHeaders headers;  //header
     private Map<String, List<String>> requestParamsMap; //参数
     private Map<String,FileUpload> requestFiles;
@@ -37,6 +39,7 @@ public class HttpContextRequest implements Serializable {
         this.request = request;
         this.charset = charset;
         this.headers = request.headers();
+        this.httpVersion = request.protocolVersion();
         this.httpMethod = request.method().name().toUpperCase();
         this.requestUrl = request.uri();
         if(requestUrl!=null) {
@@ -48,6 +51,14 @@ public class HttpContextRequest implements Serializable {
         requestUrl = HttpUtils.joinOptimizePath(requestUrl);
         HttpUtils.fillParamsMap(request, this, charset);     //init http params
         HttpUtils.fillCookies(request, this);      //init http cookie
+    }
+
+    public HttpVersion getHttpVersion() {
+        return httpVersion;
+    }
+
+    public void setHttpVersion(HttpVersion httpVersion) {
+        this.httpVersion = httpVersion;
     }
 
     public String getParameter(String name){

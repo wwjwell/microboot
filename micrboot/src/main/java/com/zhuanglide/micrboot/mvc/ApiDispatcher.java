@@ -91,7 +91,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         Throwable handlerEx = null;
         try {
             try {
-                chain.setResult(doProcess0(request, response, chain, true));
+                doProcess0(request, response, chain, true);
             } catch (Exception e) {
                 handlerEx = e;
             } catch (Throwable throwable) {
@@ -100,7 +100,9 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
             //gen view
             processDispatchResult(chain, request, response, handlerEx);
         } catch (Exception ex) {
-            chain.triggerAfterCompletion(request, response, ex);
+            chain.triggerException(request, response, ex);
+        } catch (Throwable ex) {
+            chain.triggerException(request, response, ex);
         }
     }
 
@@ -158,7 +160,18 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
                 return null;
             }
             //invoke & handler
-            return handler(mapping,request,response);
+            Object result = null;
+            Throwable ex = null;
+            try {
+                result = handler(mapping, request, response);
+                chain.setResult(result);
+            } catch (Throwable throwable) {
+                ex = throwable;
+            }
+            if (withInterceptor) {
+                chain.applyAfterHandler(request, response, ex);
+            }
+            return result;
         } catch (Exception e) {
             throw e;
         } catch (Throwable cause) {
@@ -167,7 +180,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
     }
 
 
-    private void processDispatchResult(HandlerExecuteChain chain, HttpContextRequest request, HttpContextResponse response,Throwable throwable) throws Exception {
+    private void processDispatchResult(HandlerExecuteChain chain, HttpContextRequest request, HttpContextResponse response,Throwable throwable) throws Throwable {
         if (throwable == null) {
             // Did the handler return a view to render?
             if (chain.getResult() != null) {

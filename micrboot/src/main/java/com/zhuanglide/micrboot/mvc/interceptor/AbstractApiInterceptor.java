@@ -22,7 +22,16 @@ public abstract class AbstractApiInterceptor implements ApiInterceptor,Ordered {
 
     @Override
     public void afterHandle(ApiMethodMapping mapping, Object modelView, HttpContextRequest request, HttpContextResponse response, Throwable throwable) {
-
+    }
+    /**
+     * 全部完成
+     *
+     * @param mapping
+     * @param request
+     * @param response
+     */
+    @Override
+    public void afterCompletion(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response, Throwable throwable){
     }
 
     public void setOrder(int order) {

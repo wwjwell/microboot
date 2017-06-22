@@ -36,4 +36,13 @@ public interface ApiInterceptor extends Ordered{
      */
     void afterHandle(ApiMethodMapping mapping, Object modelView, HttpContextRequest request, HttpContextResponse response, Throwable throwable);
 
+    /**
+     * 全部完成
+     *
+     * @param mapping
+     * @param request
+     * @param response
+     */
+    void afterCompletion(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response, Throwable throwable);
+
 }
