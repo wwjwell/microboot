@@ -6,11 +6,8 @@ import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.http.HttpHeaderName;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
 import com.zhuanglide.micrboot.util.RequestIdGenerator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -42,9 +39,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         listener = new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                Boolean keepAlive = future.channel().attr(Constants.KEEP_ALIVE_KEY).get();
-                keepAlive = keepAlive==null?false:keepAlive;
-                if(!keepAlive) {
+                if(!isKeepAlive(future.channel())) {
                     future.channel().close();
                 }
                 if(serverConfig.isOpenConnectCostLogger()) {
@@ -54,6 +49,12 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                 }
             }
         };
+    }
+
+    protected boolean isKeepAlive(Channel channel) {
+        Boolean keepAlive = channel.attr(Constants.KEEP_ALIVE_KEY).get();
+        keepAlive = keepAlive==null?false:keepAlive;
+        return keepAlive;
     }
 
     /**
@@ -77,7 +78,10 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             sendResponse(new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST),ctx);
             return;
         }
+        ctx.channel().attr(Constants.ATTR_REQ_ID).set(getReqId());
+        ctx.channel().attr(Constants.ATTR_CONN_ACTIVE_TIME).set(System.currentTimeMillis());
         final HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
+
         ctx.executor().execute(new Runnable() {
             @Override
             public void run() {
@@ -125,15 +129,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     }
 
 
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ctx.channel().attr(Constants.ATTR_REQ_ID).set(getReqId());
-        ctx.channel().attr(Constants.ATTR_CONN_ACTIVE_TIME).set(System.currentTimeMillis());
-        super.channelActive(ctx);
-    }
-
-
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if(evt instanceof IdleStateEvent) {
@@ -158,7 +153,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             }
             response.headers().add(HttpHeaderName.CONTENT_LENGTH, len);
         }
-        if(ctx.channel().attr(Constants.KEEP_ALIVE_KEY).get() &&
+        if(isKeepAlive(ctx.channel()) &&
                 !response.headers().contains(HttpHeaderName.CONNECTION)){
             response.headers().add(HttpHeaderName.CONNECTION, Constants.KEEP_ALIVE);
         }
