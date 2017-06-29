@@ -1,7 +1,6 @@
 package com.zhuanglide.micrboot.http;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
@@ -72,7 +71,7 @@ public class HttpContextResponse {
     }
 
     public void setContent(byte[] bytes){
-        httpResponse.content().writeBytes(Unpooled.copiedBuffer(bytes));
+        httpResponse.content().writeBytes(bytes);
     }
 
     public FullHttpResponse getHttpResponse(){

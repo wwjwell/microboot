@@ -1,9 +1,12 @@
 package com.zhuanglide.micrboot;
 
+import com.zhuanglide.micrboot.constants.Constants;
 import io.netty.channel.epoll.Epoll;
 import org.slf4j.Logger;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.concurrent.Executor;
 
 /**
  * Created by wwj on 2017/5/18.
@@ -40,7 +43,8 @@ public class ServerConfig {
     private boolean openConnectCostLogger = false; //连接耗时日志
     private int bossThreadNum;          //netty boss Thread
     private int workerThreadNum;        //netty work thread
-
+    private Executor executor;
+    private String headerServer = Constants.SERVER; //Server:micrboot ?
 
     public boolean epollAvailable(){
         return useEpoll && Epoll.isAvailable();
@@ -125,11 +129,27 @@ public class ServerConfig {
         this.openConnectCostLogger = openConnectCostLogger;
     }
 
+    public Executor getExecutor() {
+        return executor;
+    }
+
+    public void setExecutor(Executor executor) {
+        this.executor = executor;
+    }
+
     public int getIdleTimeout() {
         return idleTimeout;
     }
 
     public void setIdleTimeout(int idleTimeout) {
         this.idleTimeout = idleTimeout;
+    }
+
+    public String getHeaderServer() {
+        return headerServer;
+    }
+
+    public void setHeaderServer(String headerServer) {
+        this.headerServer = headerServer;
     }
 }

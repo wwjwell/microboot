@@ -95,11 +95,11 @@ public class Server implements ApplicationContextAware,InitializingBean {
     private void intEventGroupAndChannel(){
         if(getServerConfig().epollAvailable()) {
             bossGroup = new EpollEventLoopGroup(getServerConfig().getBossThreadNum());
-            workerGroup = new EpollEventLoopGroup(getServerConfig().getWorkerThreadNum());
+            workerGroup = new EpollEventLoopGroup(getServerConfig().getWorkerThreadNum(), getServerConfig().getExecutor());
             socketChannelClass = EpollServerSocketChannel.class;
         }else{
             bossGroup = new NioEventLoopGroup(getServerConfig().getBossThreadNum());
-            workerGroup = new NioEventLoopGroup(getServerConfig().getWorkerThreadNum());
+            workerGroup = new NioEventLoopGroup(getServerConfig().getWorkerThreadNum(), getServerConfig().getExecutor());
             socketChannelClass = NioServerSocketChannel.class;
         }
     }

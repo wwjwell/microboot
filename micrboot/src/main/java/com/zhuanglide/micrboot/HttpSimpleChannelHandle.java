@@ -3,7 +3,9 @@ package com.zhuanglide.micrboot;
 import com.zhuanglide.micrboot.constants.Constants;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
+import com.zhuanglide.micrboot.http.HttpHeaderName;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
+import com.zhuanglide.micrboot.util.RequestIdGenerator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -12,6 +14,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.Attribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -19,8 +22,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * HTTP handle
@@ -32,7 +33,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     private ApplicationContext context;
     private ApiDispatcher dispatcher;
     private ChannelFutureListener listener;
-    private AtomicLong sequence = new AtomicLong(0L);
     /**
      * 初始化
      * @param context
@@ -42,11 +42,15 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         listener = new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                future.channel().close();
+                Boolean keepAlive = future.channel().attr(Constants.KEEP_ALIVE_KEY).get();
+                keepAlive = keepAlive==null?false:keepAlive;
+                if(!keepAlive) {
+                    future.channel().close();
+                }
                 if(serverConfig.isOpenConnectCostLogger()) {
                     long reqId = future.channel().attr(Constants.ATTR_REQ_ID).get();
                     Long startTime = future.channel().attr(Constants.ATTR_CONN_ACTIVE_TIME).get();
-                    logger.info("connect closed,reqId={},cost={}ms", reqId, System.currentTimeMillis() - startTime);
+                    logger.info("http finish,reqId={},cost={}ms", reqId, System.currentTimeMillis() - startTime);
                 }
             }
         };
@@ -67,23 +71,34 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullRequest)
+    protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest fullRequest)
             throws Exception {
         if (fullRequest.decoderResult().isFailure()) {
             sendResponse(new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST),ctx);
             return;
         }
-        //转化为 api 能处理的request\response
-        HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
-        HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
-        dispatcher.doService(request, response);
-        FullHttpResponse fullHttpResponse;
-        if(null == response){
-            fullHttpResponse = new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST);
-        }else{
-            fullHttpResponse = response.getHttpResponse();
-        }
-        sendResponse(fullHttpResponse, ctx);
+        final HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
+        ctx.executor().execute(new Runnable() {
+            @Override
+            public void run() {
+                ctx.channel().attr(Constants.KEEP_ALIVE_KEY).set(HttpUtil.isKeepAlive(fullRequest));
+                //转化为 api 能处理的request\response
+                HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
+                FullHttpResponse fullHttpResponse;
+                try {
+                    dispatcher.doService(request, response);
+                    if(null == response){
+                        fullHttpResponse = new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST);
+                    }else{
+                        fullHttpResponse = response.getHttpResponse();
+                    }
+                } catch (Exception e) {
+                    logger.error("", e);
+                    fullHttpResponse = new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
+                }
+                sendResponse(fullHttpResponse, ctx);
+            }
+        });
     }
 
 
@@ -129,7 +144,24 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         super.userEventTriggered(ctx,evt);
     }
 
-    private void sendResponse(HttpResponse response, ChannelHandlerContext ctx) {
+    private void sendResponse(FullHttpResponse response, ChannelHandlerContext ctx) {
+        //append server
+        if(serverConfig.getHeaderServer() != null
+                && serverConfig.getHeaderServer().length()>0 &&
+                !response.headers().contains(HttpHeaderName.SERVER)){
+            response.headers().add(HttpHeaderName.SERVER, serverConfig.getHeaderServer());
+        }
+        if (!response.headers().contains(HttpHeaderName.CONTENT_LENGTH)) {
+            int len = 0;
+            if (null != response.content()) {
+                len = response.content().readableBytes();
+            }
+            response.headers().add(HttpHeaderName.CONTENT_LENGTH, len);
+        }
+        if(ctx.channel().attr(Constants.KEEP_ALIVE_KEY).get() &&
+                !response.headers().contains(HttpHeaderName.CONNECTION)){
+            response.headers().add(HttpHeaderName.CONNECTION, Constants.KEEP_ALIVE);
+        }
         ctx.writeAndFlush(response).addListener(listener);
     }
 
@@ -154,13 +186,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     }
 
     private Long getReqId(){
-        long reqId = sequence.incrementAndGet();
-        if (reqId < 0) {
-            synchronized (this) {
-                sequence.set(0);
-                reqId = sequence.incrementAndGet();
-            }
-        }
-        return reqId;
+        return RequestIdGenerator.getRequestId();
     }
 }
