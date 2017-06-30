@@ -48,9 +48,7 @@ public class ApiMethodParamWebResolver extends AbstractApiMethodParamResolver {
                 paramValue = request;
             } else if (type.equals(HttpContextResponse.class)) {
                 paramValue = response;
-            }
-            //文件上传
-            else {
+            } else {//文件上传
                 if (type.equals(FileUpload.class)) {
                     paramValue = request.getFileUpload(paramName);
                 }
@@ -65,6 +63,7 @@ public class ApiMethodParamWebResolver extends AbstractApiMethodParamResolver {
                     && paramValue == null) {
                 throw new IllegalArgumentException("param=" + paramName +" is required");
             }
+            return paramValue;
         }
         return null;
     }
