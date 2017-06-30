@@ -60,7 +60,7 @@ public class ApiMethodParamWebResolver extends AbstractApiMethodParamResolver {
                 }
             }
 
-            if ( paramAnnotations != null
+            if ( apiParamAnnotation != null
                     && apiParamAnnotation.required()
                     && paramValue == null) {
                 throw new IllegalArgumentException("param=" + paramName +" is required");
