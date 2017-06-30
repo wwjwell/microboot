@@ -16,11 +16,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ApiMethodParamBasicTypeResolver extends AbstractApiMethodParamResolver {
+    private static final Set<Class> BASIC_TYPE_CLASS = new HashSet<Class>(){{
+        add(String.class);
+        add(Integer.class); add(int.class);
+        add(Long.class); add(long.class);
+        add(Float.class); add(float.class);
+        add(Double.class); add(double.class);
+        add(Character.class); add(char.class);
+        add(Byte.class); add(byte.class);
+        add(Short.class); add(short.class);
+        add(Boolean.class); add(boolean.class);
+        add(BigInteger.class);
+        add(int[].class);add(Integer[].class);
+        add(long[].class);add(Long[].class);
+        add(String[].class);
+    }};
+
     public boolean support(ApiMethodParam apiMethodParam) {
         Annotation[] paramAnnotations = apiMethodParam.getParamAnnotations();
         if (null != paramAnnotations) {
             for (Annotation annotation : paramAnnotations) {
-                if (annotation instanceof ApiParam || annotation instanceof ApiRequestBody) {
+                if ((annotation instanceof ApiParam || annotation instanceof ApiRequestBody)
+                        && BASIC_TYPE_CLASS.contains(apiMethodParam.getParamType())) {
                     return true;
                 }
             }

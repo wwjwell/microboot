@@ -43,21 +43,27 @@ public class ApiMethodParamWebResolver extends AbstractApiMethodParamResolver {
             }
 
             Type type = apiMethodParam.getParamType();
-
+            Object paramValue = null;
             if (type.equals(HttpContextRequest.class)) {
-                return request;
+                paramValue = request;
             } else if (type.equals(HttpContextResponse.class)) {
-                return response;
+                paramValue = response;
             }
             //文件上传
             else {
                 if (type.equals(FileUpload.class)) {
-                    return request.getFileUpload(paramName);
+                    paramValue = request.getFileUpload(paramName);
                 }
                 //cookie
                 else if (type.equals(Cookie.class)) {
-                    return request.getCookie(paramName);
+                    paramValue = request.getCookie(paramName);
                 }
+            }
+
+            if ( paramAnnotations != null
+                    && apiParamAnnotation.required()
+                    && paramValue == null) {
+                throw new IllegalArgumentException("param=" + paramName +" is required");
             }
         }
         return null;
