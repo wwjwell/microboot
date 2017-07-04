@@ -21,6 +21,8 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import javax.activation.MimetypesFileTypeMap;
+import java.io.File;
 import java.io.RandomAccessFile;
 
 /**
@@ -98,7 +100,25 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                         httpResponse = new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST);
                     }else{
                         //文件
-                        if (response.getFile() == null || !response.getFile().isFile()) {
+                        if (response.getFile() != null) {
+                            if(!response.getFile().isFile()){
+                                httpResponse = new DefaultFullHttpResponse(response.getVersion(), HttpResponseStatus.FORBIDDEN);
+                            }else {//大文件传输
+                                RandomAccessFile raf = new RandomAccessFile(response.getFile(), "r");
+                                long fileLength = raf.length();
+                                //filename
+                                response.addHeader(HttpHeaderName.CONTENT_DISPOSITION, "attachment;filename=" + response.getFile().getName());
+
+                                httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
+                                httpResponse.headers().add(response.headers());
+                                packageResponseHeader(httpResponse, fileLength, ctx);
+                                setContentTypeHeader(httpResponse, response.getFile());
+                                ctx.write(httpResponse);
+                                ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, serverConfig.getChunkSize())),ctx.newProgressivePromise());
+                                sendResponse(ctx, LastHttpContent.EMPTY_LAST_CONTENT);
+                                return;
+                            }
+                        }else{
                             DefaultFullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(response.getVersion(), response.getStatus());
                             fullHttpResponse.headers().clear();
                             fullHttpResponse.headers().add(response.headers());
@@ -106,17 +126,9 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                                 fullHttpResponse.content().writeBytes(response.content());
                             }
                             httpResponse = fullHttpResponse;
-                        }else{
-                            RandomAccessFile raf = new RandomAccessFile(response.getFile(), "r");
-                            long fileLength = raf.length();
-                            httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
-                            httpResponse.headers().add(response.headers());
-                            packageResponseHeader(httpResponse, fileLength, ctx);
-                            ctx.write(response);
-                            ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, serverConfig.getChunkSize())));
-                            sendResponse(ctx,LastHttpContent.EMPTY_LAST_CONTENT);
-                            return;
                         }
+                        sendResponse(ctx, httpResponse);
+                        return;
                     }
                 } catch (Exception e) {
                     logger.error("", e);
@@ -127,6 +139,14 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         });
     }
 
+    private void setContentTypeHeader(HttpResponse response, File file) {
+        MimetypesFileTypeMap m = new MimetypesFileTypeMap();
+        String contentType = m.getContentType(file.getPath());
+        if (!contentType.equals("application/octet-stream")) {
+            contentType += "; charset="+serverConfig.getCharset().name();
+        }
+        response.headers().set(HttpHeaderName.CONTENT_TYPE, contentType);
+    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
