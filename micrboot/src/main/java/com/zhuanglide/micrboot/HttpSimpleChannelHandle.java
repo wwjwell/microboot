@@ -108,7 +108,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                                 long fileLength = raf.length();
                                 //filename
                                 response.addHeader(HttpHeaderName.CONTENT_DISPOSITION, "attachment;filename=" + response.getFile().getName());
-
                                 httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
                                 httpResponse.headers().add(response.headers());
                                 packageResponseHeader(httpResponse, fileLength, ctx);
