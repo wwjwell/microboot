@@ -1,9 +1,13 @@
 package com.zhuanglide.micrboot.http;
 
+import com.zhuanglide.micrboot.mvc.ApiDispatcher;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.*;
 import org.springframework.util.comparator.CompoundComparator;
 
-import java.io.Serializable;
+import javax.activation.MimetypesFileTypeMap;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -522,4 +526,26 @@ public class MediaType extends MimeType implements Serializable {
             return super.compareParameters(mediaType1, mediaType2);
         }
     };
+
+    private static MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
+    static {
+        try {// 加载默认配置
+            ClassPathResource resource = new ClassPathResource("mime.types", MediaType.class);
+            BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream(), "UTF-8"));
+            String line = br.readLine();
+            while (line != null) {
+                line = line.trim();
+                if(line.length()>0 && !line.startsWith("#")){
+                    mimetypesFileTypeMap.addMimeTypes(line);
+                }
+                line = br.readLine();
+            }
+            br.close();
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not load 'mime.types': " + ex.getMessage());
+        }
+    }
+    public static String getContentType(String fileName){
+        return mimetypesFileTypeMap.getContentType(fileName.toLowerCase());
+    }
 }

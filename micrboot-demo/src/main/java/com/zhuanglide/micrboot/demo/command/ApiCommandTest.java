@@ -73,7 +73,7 @@ public class ApiCommandTest{
     @ApiMethod("download")
     public void download(HttpContextRequest request, HttpContextResponse response){
         try {
-            File file = new File("/Users/wwj/nginx-1.10.3.tar.gz");
+            File file = new File("/Users/wwj/test.png");
             FileInputStream fileInputStream = new FileInputStream(file);
             response.setFile(file);
 

@@ -63,10 +63,10 @@ public class Server implements ApplicationContextAware,InitializingBean {
         logger.info("server shutdownGracefully ...");
         try {
 
-            if (null != bossGroup) {
+            if (null != bossGroup && !bossGroup.isShutdown()) {
                 bossGroup.shutdownGracefully();
             }
-            if (null != workerGroup) {
+            if (null != workerGroup  && !workerGroup.isShutdown()) {
                 workerGroup.shutdownGracefully();
             }
         } catch (Exception e) {

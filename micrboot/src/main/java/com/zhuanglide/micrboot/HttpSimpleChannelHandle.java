@@ -4,6 +4,7 @@ import com.zhuanglide.micrboot.constants.Constants;
 import com.zhuanglide.micrboot.http.HttpContextRequest;
 import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.http.HttpHeaderName;
+import com.zhuanglide.micrboot.http.MediaType;
 import com.zhuanglide.micrboot.mvc.ApiDispatcher;
 import com.zhuanglide.micrboot.util.RequestIdGenerator;
 import io.netty.channel.*;
@@ -11,7 +12,6 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedFile;
-import io.netty.handler.stream.ChunkedStream;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +21,10 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * HTTP handle
@@ -107,11 +108,11 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                                 RandomAccessFile raf = new RandomAccessFile(response.getFile(), "r");
                                 long fileLength = raf.length();
                                 //filename
-                                response.addHeader(HttpHeaderName.CONTENT_DISPOSITION, "attachment;filename=" + response.getFile().getName());
                                 httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
                                 httpResponse.headers().add(response.headers());
+                                httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
                                 packageResponseHeader(httpResponse, fileLength, ctx);
-                                setContentTypeHeader(httpResponse, response.getFile());
+                                packageFileHeaders(httpResponse, response.getFile());
                                 ctx.write(httpResponse);
                                 ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, serverConfig.getChunkSize())),ctx.newProgressivePromise());
                                 sendResponse(ctx, LastHttpContent.EMPTY_LAST_CONTENT);
@@ -138,14 +139,11 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         });
     }
 
-    private void setContentTypeHeader(HttpResponse response, File file) {
-        MimetypesFileTypeMap m = new MimetypesFileTypeMap();
-        String contentType = m.getContentType(file.getPath());
-        if (!contentType.equals("application/octet-stream")) {
-            contentType += "; charset="+serverConfig.getCharset().name();
-        }
-        response.headers().set(HttpHeaderName.CONTENT_TYPE, contentType);
+    private void packageFileHeaders(HttpResponse response, File fileToCache) {
+        response.headers().set(HttpHeaderName.CONTENT_TYPE, MediaType.getContentType(fileToCache.getName()));
+        response.headers().set(HttpHeaderName.LAST_MODIFIED, getDateFormatter().format(new Date(fileToCache.lastModified())));
     }
+
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -198,10 +196,18 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         if (!response.headers().contains(HttpHeaderName.CONTENT_LENGTH)) {
             response.headers().add(HttpHeaderName.CONTENT_LENGTH, len);
         }
+        if(!response.headers().contains(HttpHeaderName.DATE)) {
+            response.headers().set(HttpHeaderName.DATE, getDateFormatter().format(System.currentTimeMillis()));
+        }
         if(isKeepAlive(ctx.channel()) &&
                 !response.headers().contains(HttpHeaderName.CONNECTION)){
             response.headers().add(HttpHeaderName.CONNECTION, Constants.KEEP_ALIVE);
         }
+    }
+    private SimpleDateFormat getDateFormatter(){
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+        dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return dateFormatter;
     }
 
     protected void sendResponse(ChannelHandlerContext ctx, HttpObject response) {
