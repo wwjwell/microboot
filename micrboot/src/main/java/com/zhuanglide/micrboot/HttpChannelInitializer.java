@@ -23,9 +23,7 @@ public class HttpChannelInitializer extends ChannelInitializer {
         ch.pipeline().addLast("idle",new IdleStateHandler(0,0,serverConfig.getIdleTimeout()));
         ch.pipeline().addLast("codec", new HttpServerCodec());
         ch.pipeline().addLast("aggregator",new HttpObjectAggregator(serverConfig.getMaxLength()));
-        if(serverConfig.isUseChunked()) {//是否起用文件的大数据流
-            ch.pipeline().addLast("chunk", new ChunkedWriteHandler());
-        }
+        ch.pipeline().addLast("chunk", new ChunkedWriteHandler());
         //流量监控
         if (serverConfig.isOpenMetrics()) {
             ch.pipeline().addLast("metrics", new BytesMetricsHandler());

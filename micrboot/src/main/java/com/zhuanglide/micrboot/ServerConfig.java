@@ -38,7 +38,7 @@ public class ServerConfig {
     private int port = 8080;            //端口
     private int idleTimeout = 30;              //超时时间
     private int maxLength = 65536;      //http报文最大长度
-    private boolean useChunked = false; //HTTP msg chunk
+    private int chunkSize = 8192; //HTTP chunk size
     private boolean openMetrics = false; //加入性能监控
     private boolean openConnectCostLogger = false; //连接耗时日志
     private int bossThreadNum;          //netty boss Thread
@@ -68,6 +68,13 @@ public class ServerConfig {
         return workerThreadNum;
     }
 
+    public int getChunkSize() {
+        return chunkSize;
+    }
+
+    public void setChunkSize(int chunkSize) {
+        this.chunkSize = chunkSize;
+    }
 
     public Charset getCharset() {
         return charset;
@@ -99,14 +106,6 @@ public class ServerConfig {
 
     public void setMaxLength(int maxLength) {
         this.maxLength = maxLength;
-    }
-
-    public boolean isUseChunked() {
-        return useChunked;
-    }
-
-    public void setUseChunked(boolean useChunked) {
-        this.useChunked = useChunked;
     }
 
     public void setWorkerThreadNum(int workerThreadNum) {

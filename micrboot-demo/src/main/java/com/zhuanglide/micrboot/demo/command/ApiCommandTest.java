@@ -1,9 +1,15 @@
 package com.zhuanglide.micrboot.demo.command;
 
 import com.zhuanglide.micrboot.demo.resolver.CustomerParam;
+import com.zhuanglide.micrboot.http.HttpContextRequest;
+import com.zhuanglide.micrboot.http.HttpContextResponse;
 import com.zhuanglide.micrboot.mvc.ModelAndView;
 import com.zhuanglide.micrboot.mvc.annotation.*;
+import io.netty.handler.codec.http.multipart.FileUpload;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,5 +67,19 @@ public class ApiCommandTest{
     @ApiMethod("cus")
     public String cus(CustomerParam param) {
         return param.customer;
+    }
+
+
+    @ApiMethod("download")
+    public void download(HttpContextRequest request, HttpContextResponse response){
+        try {
+            File file = new File("/Users/wwj/test.sh");
+            FileInputStream fileInputStream = new FileInputStream(file);
+            response.setFile(file);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 }
