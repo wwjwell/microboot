@@ -19,6 +19,7 @@ public class HttpContextResponse {
     private Charset charset;
     private HttpHeaders headers;
     private File file;
+    private InputStream inputStream;
     private ByteBuf content;
     public HttpContextResponse(HttpVersion version, HttpResponseStatus status, Charset charset){
         this.version = version;
@@ -71,6 +72,14 @@ public class HttpContextResponse {
 
     public void setFile(File file) {
         this.file = file;
+    }
+
+    public InputStream getInputStream() {
+        return inputStream;
+    }
+
+    public void setInputStream(InputStream inputStream) {
+        this.inputStream = inputStream;
     }
 
     /**

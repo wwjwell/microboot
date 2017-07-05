@@ -12,6 +12,7 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedFile;
+import io.netty.handler.stream.ChunkedStream;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,22 +103,30 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                     }else{
                         //文件
                         if (response.getFile() != null) {
-                            if(!response.getFile().isFile()){
-                                httpResponse = new DefaultFullHttpResponse(response.getVersion(), HttpResponseStatus.FORBIDDEN);
-                            }else {//大文件传输
-                                RandomAccessFile raf = new RandomAccessFile(response.getFile(), "r");
-                                long fileLength = raf.length();
-                                //filename
-                                httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
-                                httpResponse.headers().add(response.headers());
-                                httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
-                                packageResponseHeader(httpResponse, fileLength, ctx);
-                                packageFileHeaders(httpResponse, response.getFile());
-                                ctx.write(httpResponse);
-                                ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, serverConfig.getChunkSize())),ctx.newProgressivePromise());
-                                sendResponse(ctx, LastHttpContent.EMPTY_LAST_CONTENT);
-                                return;
+                            RandomAccessFile raf = new RandomAccessFile(response.getFile(), "r");
+                            long fileLength = raf.length();
+                            //filename
+                            httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
+                            httpResponse.headers().add(response.headers());
+                            httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
+                            packageResponseHeader(httpResponse, fileLength, ctx);
+                            packageFileHeaders(httpResponse, response.getFile());
+                            ctx.write(httpResponse);
+                            ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, serverConfig.getChunkSize())),ctx.newProgressivePromise());
+                            sendResponse(ctx, LastHttpContent.EMPTY_LAST_CONTENT);
+                            return;
+                        }else if(response.getInputStream() != null){
+                            httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
+                            httpResponse.headers().add(response.headers());
+                            httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
+                            if(isKeepAlive(ctx.channel()) &&
+                                    !response.headers().contains(HttpHeaderName.CONNECTION)){
+                                response.headers().add(HttpHeaderName.CONNECTION, "keep-alive");
                             }
+                            ctx.write(httpResponse);
+                            ctx.write(new HttpChunkedInput(new ChunkedStream(response.getInputStream(),serverConfig.getChunkSize())),ctx.newProgressivePromise());
+                            sendResponse(ctx, LastHttpContent.EMPTY_LAST_CONTENT);
+                            return;
                         }else{
                             DefaultFullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(response.getVersion(), response.getStatus());
                             fullHttpResponse.headers().clear();
