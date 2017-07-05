@@ -140,8 +140,15 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     }
 
     private void packageFileHeaders(HttpResponse response, File fileToCache) {
-        response.headers().set(HttpHeaderName.CONTENT_TYPE, MediaType.getContentType(fileToCache.getName()));
-        response.headers().set(HttpHeaderName.LAST_MODIFIED, getDateFormatter().format(new Date(fileToCache.lastModified())));
+        if(!response.headers().contains(HttpHeaderName.DATE)) {
+            response.headers().set(HttpHeaderName.DATE, getDateFormatter().format(System.currentTimeMillis()));
+        }
+        if(!response.headers().contains(HttpHeaderName.CONTENT_TYPE)) {
+            response.headers().set(HttpHeaderName.CONTENT_TYPE, MediaType.getContentType(fileToCache.getName()));
+        }
+        if(!response.headers().contains(HttpHeaderName.LAST_MODIFIED)) {
+            response.headers().set(HttpHeaderName.LAST_MODIFIED, getDateFormatter().format(new Date(fileToCache.lastModified())));
+        }
     }
 
 
@@ -195,9 +202,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }
         if (!response.headers().contains(HttpHeaderName.CONTENT_LENGTH)) {
             response.headers().add(HttpHeaderName.CONTENT_LENGTH, len);
-        }
-        if(!response.headers().contains(HttpHeaderName.DATE)) {
-            response.headers().set(HttpHeaderName.DATE, getDateFormatter().format(System.currentTimeMillis()));
         }
         if(isKeepAlive(ctx.channel()) &&
                 !response.headers().contains(HttpHeaderName.CONNECTION)){
