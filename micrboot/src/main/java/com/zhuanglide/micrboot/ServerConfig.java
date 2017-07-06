@@ -37,7 +37,7 @@ public class ServerConfig {
     private boolean useEpoll = true;    //使用epoll
     private int port = 8080;            //端口
     private int idleTimeout = 30;              //超时时间
-    private int maxLength = 65536;      //http报文最大长度
+    private int maxLength = 1024*1024;      //http报文最大长度
     private int chunkSize = 8192; //HTTP chunk size
     private boolean openMetrics = false; //加入性能监控
     private boolean openConnectCostLogger = false; //连接耗时日志

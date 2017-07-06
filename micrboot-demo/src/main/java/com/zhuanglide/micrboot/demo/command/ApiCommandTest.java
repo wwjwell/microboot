@@ -82,4 +82,9 @@ public class ApiCommandTest{
         }
 
     }
+
+    @ApiMethod("body")
+    public String body(@ApiParam("p1") String p1, @ApiRequestBody String body) {
+        return "p1="+p1 + ",body=" + body;
+    }
 }

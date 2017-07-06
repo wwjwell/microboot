@@ -193,18 +193,10 @@ public class HttpContextRequest implements Serializable {
     }
 
     public String getBody() {
-        if (null == body) {
-            request.content().markReaderIndex();
-            int len = request.content().readableBytes();
-            if (len > 0) {
-                byte[] bytes = new byte[len];
-                request.content().readBytes(bytes, 0, len);
-                body = new String(bytes, charset);
-            } else {
-                body = "";
-            }
-            request.content().resetReaderIndex();
-        }
         return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 }
