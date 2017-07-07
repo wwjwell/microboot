@@ -82,6 +82,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest fullRequest)
             throws Exception {
+        ctx.channel().attr(Constants.ATTR_REQ_ID).set(getReqId());
         if (fullRequest.decoderResult().isFailure()) {
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
             sendResponse(ctx, response);
@@ -168,7 +169,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         int times = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().getAndIncrement();
         ctx.channel().attr(Constants.ATTR_REQUEST_COME_TIME).set(System.currentTimeMillis());
         if (times > serverConfig.getMaxKeepAliveRequests()) {
-            ctx.channel().attr(Constants.ATTR_REQ_ID).set(getReqId());
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.protocolVersion(), HttpResponseStatus.FORBIDDEN);
             response.headers().add(HttpHeaderName.CONNECTION, "close");
             response.content().writeBytes("deny by micrboot server, too much http request times in one keep-alive".getBytes(serverConfig.getCharset()));
