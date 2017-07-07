@@ -46,7 +46,7 @@ public class ServerConfig {
     //keep alive
     private boolean openKeepAlive = true;   //openKeepAlive
     private int keepAliveTimeout = 30000;   //在keepAliveTimeout长时间内没有通信，会关闭掉该连接。设置为-1 则代表不会关闭该连接。
-    private int maxKeepAliveRequests = 1; //默认为100，也就是在keepAliveTimeout时间内，如果使用次数超过100，则会关闭掉该连接。设置为-1，则代表不会关闭连接。在关闭后，会在返回的header上面加上Connection:close 。
+    private int maxKeepAliveRequests = 100; //默认为100，也就是在keepAliveTimeout时间内，如果使用次数超过100，则会关闭掉该连接。设置为-1，则代表不会关闭连接。在关闭后，会在返回的header上面加上Connection:close 。
     private int maxLength = 1024 * 1024;      //http报文最大长度 ,default  1M
     private int chunkSize = 8192; //HTTP chunk size
     private boolean openSSL = false;    //启用SSL
