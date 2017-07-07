@@ -9,15 +9,15 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
-    <name>micrboot-parent</name>
+    <name>microboot-parent</name>
     <groupId>com.zhuanglide</groupId>
     <artifactId>micrboot-parent</artifactId>
     <version>1.1.0-SNAPSHOT</version>
     <description>http server not follow J2EE using Netty</description>
 
     <modules>
-        <module>micrboot</module>
-        <module>micrboot-demo</module>
+        <module>microboot</module>
+        <module>microboot-demo</module>
     </modules>
 
     <licenses>
@@ -35,9 +35,9 @@
     </developers>
     <scm>
         <tag>master</tag>
-        <url>https://github.com/wwjwell/micrboot</url>
-        <connection>scm:git:https://github.com/wwjwell/micrboot.git</connection>
-        <developerConnection>scm:git:https://github.com/wwjwell/micrboot.git</developerConnection>
+        <url>https://github.com/wwjwell/microboot</url>
+        <connection>scm:git:https://github.com/wwjwell/microboot.git</connection>
+        <developerConnection>scm:git:https://github.com/wwjwell/microboot.git</developerConnection>
     </scm>
 
     <properties>
@@ -236,5 +236,5 @@
             </plugin>
         </plugins>
     </build>
-    <!-- how to deploy ? mvn  repository:bundle-create  -pl micrboot -am -P release-->
+    <!-- how to deploy ? mvn  repository:bundle-create  microbootboot -am -P release-->
 </project>

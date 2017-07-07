@@ -1,10 +1,10 @@
-# micrboot 是什么，能做什么？
-### micrboot是什么
-micrboot 是基于Netty 开发的一个Http服务框架，自身提供http server功能，jar包方式启动，使用方式与架构与SpringMVC极其相似，micrboot没有遵循j2ee规范，非常轻量级，并且高性能。
-### micrboot能做什么
-micrboot天生是为了后端纯接口服务做得框架，具有开发、部署简单，高性能并且稳定，支持所有http请求方式，支持多视图，并且可以根据自己的要求自定义ViewResolver返回自己想要的结果，目前服务只String、JSONView 两种返回。
+# microboot 是什么，能做什么？
+### microboot是什么
+microboot 是基于Netty 开发的一个Http服务框架，自身提供http server功能，jar包方式启动，使用方式与架构与SpringMVC极其相似，microboot没有遵循j2ee规范，非常轻量级，并且高性能。
+### microboot能做什么
+microboot天生是为了后端纯接口服务做得框架，具有开发、部署简单，高性能并且稳定，支持所有http请求方式，支持多视图，并且可以根据自己的要求自定义ViewResolver返回自己想要的结果，目前服务只String、JSONView 两种返回。
 
-# micrboot 优缺点
+# microboot 优缺点
 ### 优点
 - 超级轻量级的框架
 - 性能优越，稳定，尤其对于非常暴增的流量，能够稳定支撑
@@ -18,14 +18,14 @@ micrboot天生是为了后端纯接口服务做得框架，具有开发、部署
 - 由于不支持j2ee规范，所以不能支持jsp（绝对不会支持），目前还不支持静态资源(作者还没写，以后会支持)，freemark等模板语言不支持(作者还没有写，可以自己处理直接返回String)
 - 不是标准，非权威
 
-# micrboot设计思想
-micrboot设计思想源于springMVC，摒弃J2EE繁杂的规范，更加纯粹的进行HTTP编程，不依赖于任何第三方容器，运用高性能的Netty框架做server ，以及netty的线程模型来处理业务。一旦你使用了micrboot，或许你再也不想用tomcat做你的容器了。
-- ![image](https://github.com/wwjwell/micrboot/raw/master/docs/micrboot.png)
+# microboot设计思想
+microboot设计思想源于springMVC，摒弃J2EE繁杂的规范，更加纯粹的进行HTTP编程，不依赖于任何第三方容器，运用高性能的Netty框架做server ，以及netty的线程模型来处理业务。一旦你使用了microboot，或许你再也不想用tomcat做你的容器了。
+- ![image](https://github.com/wwjwell/microboot/raw/master/docs/microboot.png)
 
-# micrboot依赖情况
-micrboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中引入这4个jar
+# microboot依赖情况
+microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中引入这4个jar
 
-# micrboot怎么使用
+# microboot怎么使用
 ### maven配置
 ```
     <!-- 依赖 -->
@@ -49,22 +49,22 @@ micrboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中引
 ```
     <dependency>
       <groupId>com.zhuanglide</groupId>
-      <artifactId>micrboot</artifactId>
+      <artifactId>microboot</artifactId>
       <version>1.0.1</version>
     </dependency>
 ```
 ### spring 配置 
-* 可参照 micrboot-demo/src/main/resources/api.xml
+* 可参照 microboot-demo/src/main/resources/api.xml
 ```
-    <context:component-scan base-package="com.zhuanglide.micrboot.demo.**">
+    <context:component-scan base-package="com.zhuanglide.microboot.demo.**">
         <!-- 扫描ApiCommand注解 -->
-        <context:include-filter type="annotation" expression="com.zhuanglide.micrboot.mvc.annotation.ApiCommand"/>
+        <context:include-filter type="annotation" expression="com.zhuanglide.microboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
-    <bean name="server" class="com.zhuanglide.micrboot.ServerConfig">
+    <bean name="server" class="com.zhuanglide.microboot.ServerConfig">
         <property name="port" value="8080"/> <!-- set port=8080 -->
     </bean>    
     <!-- config server -->
-    <bean name="server" class="com.zhuanglide.micrboot.Server">
+    <bean name="server" class="com.zhuanglide.microboot.Server">
         <property name="serverConfig" ref="serverConfig"/> <!-- set port=8080 -->
     </bean>
 ```
@@ -101,14 +101,14 @@ micrboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中引
     #输出 {"name":"tomcat","id":100}
 ```
 ### 更多例子和用法
-请看micrboot-demo
+请看microboot-demo
 
 # 拦截器
 * 类springMVC拦截器
   增加拦截器，需要在spring配置文件中显示调用
 
 ```
-  <bean class="com.zhuanglide.micrboot.demo.interceptor.TestInterceptor">  
+  <bean class="com.zhuanglide.microboot.demo.interceptor.TestInterceptor">  
       <property name="order" value="1"/>
   </bean>
     
@@ -141,6 +141,6 @@ micrboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中引
 
 * 设置spring配置文件 需要增加一个设置，获取apiDispatcher内部处理类，调用doProcess方法
 ```
-    <bean class="com.zhuanglide.micrboot.mvc.ApiDispatcher"/>
+    <bean class="com.zhuanglide.microboot.mvc.ApiDispatcher"/>
 ```
-具体用法参考micrboot-demo的 BatchCommndTest类
+具体用法参考microboot-demo的 BatchCommndTest类
