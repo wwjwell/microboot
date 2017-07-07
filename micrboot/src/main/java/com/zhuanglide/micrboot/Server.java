@@ -13,6 +13,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
@@ -22,7 +23,7 @@ import org.springframework.context.ApplicationContextAware;
  * http server
  * Created by wwj on 17/3/2.
  */
-public class Server implements ApplicationContextAware,InitializingBean {
+public class Server implements ApplicationContextAware,InitializingBean,DisposableBean {
     private Logger logger = LoggerFactory.getLogger(Server.class);
     private ServerConfig serverConfig;
     private ApplicationContext context;
@@ -58,21 +59,25 @@ public class Server implements ApplicationContextAware,InitializingBean {
     /**
      * 优雅的关闭
      */
+    private boolean shutdown = false;
     public void shutdown(){
-        long time = System.currentTimeMillis();
-        logger.info("server shutdownGracefully ...");
-        try {
+        if(!shutdown) {
+            long time = System.currentTimeMillis();
+            logger.info("server shutdownGracefully ...");
+            try {
 
-            if (null != bossGroup && !bossGroup.isShutdown()) {
-                bossGroup.shutdownGracefully();
+                if (null != bossGroup && !bossGroup.isShutdown()) {
+                    bossGroup.shutdownGracefully();
+                }
+                if (null != workerGroup && !workerGroup.isShutdown()) {
+                    workerGroup.shutdownGracefully();
+                }
+            } catch (Exception e) {
+                logger.error("", e);
             }
-            if (null != workerGroup  && !workerGroup.isShutdown()) {
-                workerGroup.shutdownGracefully();
-            }
-        } catch (Exception e) {
-            logger.error("", e);
+            logger.info("server shutdown finish ,cost=" + (System.currentTimeMillis() - time) + "ms");
+            shutdown = true;
         }
-        logger.info("server shutdown finish ,cost=" + (System.currentTimeMillis() - time) + "ms");
     }
 
 
@@ -119,6 +124,11 @@ public class Server implements ApplicationContextAware,InitializingBean {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        shutdown();
     }
 
     public ApplicationContext getContext() {
