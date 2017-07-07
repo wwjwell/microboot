@@ -51,12 +51,15 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                     future.channel().close();
                 }
                 if(serverConfig.isOpenConnectCostLogger()) {
-                    long reqId = future.channel().attr(Constants.ATTR_REQ_ID).get();
                     Long startTime = future.channel().attr(Constants.ATTR_REQUEST_COME_TIME).get();
-                    logger.info("http finish,reqId={},cost={}ms", reqId, System.currentTimeMillis() - startTime);
+                    logger.info("http finish,reqId={},cost={}ms", getReqId(future.channel()), System.currentTimeMillis() - startTime);
                 }
             }
         };
+    }
+
+    private Long getReqId(Channel channel) {
+        return channel.attr(Constants.ATTR_REQ_ID).get();
     }
 
     protected boolean isKeepAlive(Channel channel) {
@@ -82,7 +85,8 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest fullRequest)
             throws Exception {
-        ctx.channel().attr(Constants.ATTR_REQ_ID).set(getReqId());
+        long reqId = genReqId();
+        ctx.channel().attr(Constants.ATTR_REQ_ID).set(reqId);
         if (fullRequest.decoderResult().isFailure()) {
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
             sendResponse(ctx, response);
@@ -93,6 +97,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             return;
         }
         final HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
+        request.addAttachment(Constants.REQ_ID, reqId);
         ctx.executor().execute(new Runnable() {
             @Override
             public void run() {
@@ -186,7 +191,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("", cause);
+        logger.warn("reqId="+getReqId(ctx.channel()), cause);
         FullHttpResponse response;
         try {
             response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
@@ -272,7 +277,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         this.serverConfig = serverConfig;
     }
 
-    private Long getReqId(){
+    private Long genReqId(){
         return RequestIdGenerator.getRequestId();
     }
 }
