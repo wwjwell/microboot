@@ -59,8 +59,8 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
     /**
      * 优雅的关闭
      */
-    private boolean shutdown = false;
-    public void shutdown(){
+    private volatile boolean shutdown = false;
+    public synchronized void shutdown(){
         if(!shutdown) {
             long time = System.currentTimeMillis();
             logger.info("server shutdownGracefully ...");
