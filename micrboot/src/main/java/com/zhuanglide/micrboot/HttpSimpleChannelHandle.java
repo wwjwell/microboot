@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * HTTP handle
@@ -51,7 +52,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                 }
                 if(serverConfig.isOpenConnectCostLogger()) {
                     long reqId = future.channel().attr(Constants.ATTR_REQ_ID).get();
-                    Long startTime = future.channel().attr(Constants.ATTR_CONN_ACTIVE_TIME).get();
+                    Long startTime = future.channel().attr(Constants.ATTR_REQUEST_COME_TIME).get();
                     logger.info("http finish,reqId={},cost={}ms", reqId, System.currentTimeMillis() - startTime);
                 }
             }
@@ -61,7 +62,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     protected boolean isKeepAlive(Channel channel) {
         Boolean keepAlive = channel.attr(Constants.KEEP_ALIVE_KEY).get();
         keepAlive = keepAlive==null?false:keepAlive;
-        return keepAlive;
+        return keepAlive && serverConfig.isOpenKeepAlive();
     }
 
     /**
@@ -86,8 +87,10 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             sendResponse(ctx, response);
             return;
         }
-        ctx.channel().attr(Constants.ATTR_REQ_ID).set(getReqId());
-        ctx.channel().attr(Constants.ATTR_CONN_ACTIVE_TIME).set(System.currentTimeMillis());
+
+        if (!preAndCheckHttpRequest(ctx, fullRequest)) {
+            return;
+        }
         final HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
         ctx.executor().execute(new Runnable() {
             @Override
@@ -160,6 +163,26 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }
     }
 
+
+    public boolean preAndCheckHttpRequest(ChannelHandlerContext ctx, HttpRequest request){
+        int times = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().getAndIncrement();
+        ctx.channel().attr(Constants.ATTR_REQUEST_COME_TIME).set(System.currentTimeMillis());
+        if (times > serverConfig.getMaxKeepAliveRequests()) {
+            ctx.channel().attr(Constants.ATTR_REQ_ID).set(getReqId());
+            DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.protocolVersion(), HttpResponseStatus.FORBIDDEN);
+            response.headers().add(HttpHeaderName.CONNECTION, "close");
+            response.content().writeBytes("deny by micrboot server, too much http request times in one keep-alive".getBytes(serverConfig.getCharset()));
+            ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).set(new AtomicInteger(1));
+        super.channelActive(ctx);
+    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
