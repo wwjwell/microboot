@@ -206,7 +206,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             }
             response.content().writeBytes(ex.getBytes(getServerConfig().getCharset()));
         } catch (Exception e) {
-            logger.error("", e);
+            logger.error("reqId="+getReqId(ctx.channel()), e);
             response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
         }
         sendResponse(ctx, response);

@@ -200,7 +200,7 @@ public class HttpContextRequest implements Serializable {
         if (null == body) {
             synchronized (this) {
                 if (null == body && null != request.content()) {
-                    request.content().retain();
+                    request.content().markReaderIndex();
                     if (null != request.content()) {
                         int len = request.content().readableBytes();
                         if (len > 0) {
@@ -209,7 +209,7 @@ public class HttpContextRequest implements Serializable {
                             body = new String(bytes, charset);
                         }
                     }
-                    request.content().release();
+                    request.content().resetReaderIndex();
                 }
                 if (body == null) {
                     body = "";
