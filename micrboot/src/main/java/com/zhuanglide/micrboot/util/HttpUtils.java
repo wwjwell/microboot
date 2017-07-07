@@ -1,6 +1,7 @@
 package com.zhuanglide.micrboot.util;
 
 import com.zhuanglide.micrboot.http.HttpContextRequest;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
@@ -8,6 +9,8 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -16,10 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpUtils {
+    private static Logger logger = LoggerFactory.getLogger(HttpUtils.class);
     /**
      * 填充http参数
      *
-     * @param requestß
+     * @param request
      * @return
      */
     public static void fillParamsMap(FullHttpRequest request, HttpContextRequest context, Charset charset) {
@@ -31,6 +35,16 @@ public class HttpUtils {
             requestParamsMap.put(attr.getKey(), attr.getValue());
         }
         if (request.method().equals(HttpMethod.POST)) {
+            request.content().markReaderIndex();
+            if (request.content().readableBytes() > 0) {
+                byte[] body = new byte[request.content().readableBytes()];
+                request.content().readBytes(body);
+                context.setBody(new String(body,charset));
+            }else{
+                context.setBody("");
+            }
+            request.content().resetReaderIndex();
+
             HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), request);
             try{
                 List<InterfaceHttpData> postList = decoder.getBodyHttpDatas();
@@ -54,7 +68,7 @@ public class HttpUtils {
                 }
 
             }catch (Exception e){
-                e.printStackTrace();
+                logger.error("parse post param failed", e);
             }
         }
         context.setRequestParamsMap(requestParamsMap);
