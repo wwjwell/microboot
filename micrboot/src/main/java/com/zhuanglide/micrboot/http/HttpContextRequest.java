@@ -34,6 +34,9 @@ public class HttpContextRequest implements Serializable {
     private Map<String,Cookie> cookies; //request cookies
     private Map<String,Object> attachment;
 
+    private HttpContextRequest(){
+    }
+
     public HttpContextRequest(FullHttpRequest request,Charset charset) {
         this.time = System.currentTimeMillis();
         this.request = request;
@@ -49,6 +52,7 @@ public class HttpContextRequest implements Serializable {
             }
         }
         requestUrl = HttpUtils.joinOptimizePath(requestUrl);
+        this.getBody();
         HttpUtils.fillParamsMap(request, this, charset);     //init http params
         HttpUtils.fillCookies(request, this);      //init http cookie
     }
@@ -179,23 +183,41 @@ public class HttpContextRequest implements Serializable {
     }
 
     public HttpContextRequest copy() throws CloneNotSupportedException {
-        HttpContextRequest _request = new HttpContextRequest(this.request,this.charset);
-        _request.requestParamsMap.putAll(this.requestParamsMap);
-        _request.cookies.putAll(this.cookies);
-        if (null != this.attachment) {
-            if (_request.attachment == null) {
-                _request.attachment = new HashMap<String, Object>();
-            }
-            _request.attachment.putAll(this.attachment);
-        }
+        HttpContextRequest _request = new HttpContextRequest();
+        _request.charset = this.charset;
+        _request.headers = this.headers;
+        _request.httpVersion = this.httpVersion;
+        _request.httpMethod = this.httpMethod;
+        _request.requestUrl = this.requestUrl;
         _request.body = this.getBody();
+        _request.requestParamsMap = new HashMap<String, List<String>>(this.requestParamsMap);
+        _request.cookies = new HashMap<String, Cookie>(this.cookies);
+        _request.attachment = new HashMap<String, Object>(this.attachment);
         return _request;
     }
 
     public String getBody() {
+        if (null == body) {
+            synchronized (this) {
+                if (null == body && null != request.content()) {
+                    request.content().retain();
+                    if (null != request.content()) {
+                        int len = request.content().readableBytes();
+                        if (len > 0) {
+                            byte[] bytes = new byte[len];
+                            request.content().readBytes(bytes);
+                            body = new String(bytes, charset);
+                        }
+                    }
+                    request.content().release();
+                }
+                if (body == null) {
+                    body = "";
+                }
+            }
+        }
         return body;
     }
-
     public void setBody(String body) {
         this.body = body;
     }

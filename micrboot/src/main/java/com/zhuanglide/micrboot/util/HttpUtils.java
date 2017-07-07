@@ -1,7 +1,6 @@
 package com.zhuanglide.micrboot.util;
 
 import com.zhuanglide.micrboot.http.HttpContextRequest;
-import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
@@ -35,16 +34,6 @@ public class HttpUtils {
             requestParamsMap.put(attr.getKey(), attr.getValue());
         }
         if (request.method().equals(HttpMethod.POST)) {
-            request.content().markReaderIndex();
-            if (request.content().readableBytes() > 0) {
-                byte[] body = new byte[request.content().readableBytes()];
-                request.content().readBytes(body);
-                context.setBody(new String(body,charset));
-            }else{
-                context.setBody("");
-            }
-            request.content().resetReaderIndex();
-
             HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), request);
             try{
                 List<InterfaceHttpData> postList = decoder.getBodyHttpDatas();
