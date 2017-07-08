@@ -48,7 +48,7 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
 ```
 ```
     <dependency>
-      <groupId>com.zhuanglide</groupId>
+      <groupId>com.github.wwjwell</groupId>
       <artifactId>microboot</artifactId>
       <version>2.0.0</version>
     </dependency>
@@ -56,15 +56,15 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
 ### spring 配置 
 * 可参照 microboot-demo/src/main/resources/api.xml
 ```
-    <context:component-scan base-package="com.zhuanglide.microboot.demo.**">
+    <context:component-scan base-package="com.github.wwjwell.microboot.demo.**">
         <!-- 扫描ApiCommand注解 -->
-        <context:include-filter type="annotation" expression="com.zhuanglide.microboot.mvc.annotation.ApiCommand"/>
+        <context:include-filter type="annotation" expression="ApiCommand"/>
     </context:component-scan>
-    <bean name="server" class="com.zhuanglide.microboot.ServerConfig">
+    <bean name="server" class="ServerConfig">
         <property name="port" value="8080"/> <!-- set port=8080 -->
     </bean>    
     <!-- config server -->
-    <bean name="server" class="com.zhuanglide.microboot.Server">
+    <bean name="server" class="Server">
         <property name="serverConfig" ref="serverConfig"/> <!-- set port=8080 -->
     </bean>
 ```
@@ -108,7 +108,7 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
   增加拦截器，需要在spring配置文件中显示调用
 
 ```
-  <bean class="com.zhuanglide.microboot.demo.interceptor.TestInterceptor">  
+  <bean class="TestInterceptor">  
       <property name="order" value="1"/>
   </bean>
     
@@ -141,6 +141,6 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
 
 * 设置spring配置文件 需要增加一个设置，获取apiDispatcher内部处理类，调用doProcess方法
 ```
-    <bean class="com.zhuanglide.microboot.mvc.ApiDispatcher"/>
+    <bean class="ApiDispatcher"/>
 ```
 具体用法参考microboot-demo的 BatchCommndTest类

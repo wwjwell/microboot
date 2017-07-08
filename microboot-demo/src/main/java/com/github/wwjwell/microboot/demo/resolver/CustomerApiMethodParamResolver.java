@@ -1,9 +1,9 @@
-package com.zhuanglide.microboot.demo.resolver;
+package com.github.wwjwell.microboot.demo.resolver;
 
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.ApiMethodParam;
-import com.zhuanglide.microboot.mvc.resolver.param.AbstractApiMethodParamResolver;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ApiMethodParam;
+import com.github.wwjwell.microboot.mvc.resolver.param.AbstractApiMethodParamResolver;
 
 /**
  * Created by wwj on 2017/6/6.

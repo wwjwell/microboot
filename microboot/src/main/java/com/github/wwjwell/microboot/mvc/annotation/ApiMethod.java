@@ -1,4 +1,4 @@
-package com.zhuanglide.microboot.mvc.annotation;
+package com.github.wwjwell.microboot.mvc.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

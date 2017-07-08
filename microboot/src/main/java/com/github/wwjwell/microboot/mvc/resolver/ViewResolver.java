@@ -1,8 +1,8 @@
-package com.zhuanglide.microboot.mvc.resolver;
+package com.github.wwjwell.microboot.mvc.resolver;
 
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.ModelAndView;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ModelAndView;
 import org.springframework.core.Ordered;
 
 /**

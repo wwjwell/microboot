@@ -1,6 +1,6 @@
-package com.zhuanglide.microboot.metrics;
+package com.github.wwjwell.microboot.metrics;
 
-import com.zhuanglide.microboot.constants.Constants;
+import com.github.wwjwell.microboot.constants.Constants;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;

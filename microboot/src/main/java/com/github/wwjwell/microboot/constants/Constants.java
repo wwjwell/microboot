@@ -1,4 +1,4 @@
-package com.zhuanglide.microboot.constants;
+package com.github.wwjwell.microboot.constants;
 
 import io.netty.util.AttributeKey;
 

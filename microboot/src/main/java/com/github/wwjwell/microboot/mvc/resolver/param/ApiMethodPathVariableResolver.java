@@ -1,11 +1,11 @@
-package com.zhuanglide.microboot.mvc.resolver.param;
+package com.github.wwjwell.microboot.mvc.resolver.param;
 
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.ApiMethodMapping;
-import com.zhuanglide.microboot.mvc.ApiMethodParam;
-import com.zhuanglide.microboot.mvc.annotation.ApiPathVariable;
-import com.zhuanglide.microboot.mvc.resolver.ApiMethodParamResolver;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ApiMethodMapping;
+import com.github.wwjwell.microboot.mvc.ApiMethodParam;
+import com.github.wwjwell.microboot.mvc.annotation.ApiPathVariable;
+import com.github.wwjwell.microboot.mvc.resolver.ApiMethodParamResolver;
 import org.springframework.util.PathMatcher;
 
 import java.lang.annotation.Annotation;
@@ -35,7 +35,7 @@ public class ApiMethodPathVariableResolver extends AbstractApiMethodParamResolve
     public Object getParamObject(ApiMethodParam apiMethodParam, HttpContextRequest request, HttpContextResponse response) throws Exception {
         Annotation[] paramAnnotations = apiMethodParam.getParamAnnotations();
         if (null != paramAnnotations) {
-            Object attachment = request.getAttachment(ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY);
+            Object attachment = request.getAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY);
             if(attachment == null || !(attachment instanceof Map)){
                 return null;
             }
@@ -56,7 +56,7 @@ public class ApiMethodPathVariableResolver extends AbstractApiMethodParamResolve
 
 
     //解析patchVariable
-    public void prepare(ApiMethodMapping mapping, HttpContextRequest request,Object ... args){
+    public void prepare(ApiMethodMapping mapping, HttpContextRequest request, Object ... args){
         if(null != args && args.length>0 && args[0] instanceof PathMatcher) {
             PathMatcher matcher = (PathMatcher) args[0];
             if (request.getAttachment(ApiMethodParamResolver.ATTACHMENT_API_METHOD_PATH_VARIABLE_KEY) == null) {

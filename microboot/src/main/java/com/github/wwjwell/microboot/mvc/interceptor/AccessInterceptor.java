@@ -1,13 +1,12 @@
-package com.zhuanglide.microboot.mvc.interceptor;
+package com.github.wwjwell.microboot.mvc.interceptor;
 
-import com.zhuanglide.microboot.constants.Constants;
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.ApiMethodMapping;
+import com.github.wwjwell.microboot.constants.Constants;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ApiMethodMapping;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.Ordered;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +23,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     private boolean appendParam = true;         //是否展示param内容
     private boolean appendResponse = false;     //是否展示response内容
     private String split = "|,|";
-    protected int order = Ordered.HIGHEST_PRECEDENCE + 100;
+    protected int order = HIGHEST_PRECEDENCE + 100;
 
     public final static String ATTR_REQ_START_TIME = "REQ_START_TIME";
     public final static String ATTR_REQ_SYS_PARAMS = "REQ_SYS_PARAMS";

@@ -1,4 +1,4 @@
-package com.zhuanglide.microboot.metrics;
+package com.github.wwjwell.microboot.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
 

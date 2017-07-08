@@ -1,6 +1,6 @@
-package com.zhuanglide.microboot;
+package com.github.wwjwell.microboot;
 
-import com.zhuanglide.microboot.constants.Constants;
+import com.github.wwjwell.microboot.constants.Constants;
 import io.netty.channel.epoll.Epoll;
 
 import javax.net.ssl.SSLEngine;

@@ -1,6 +1,6 @@
-package com.zhuanglide.microboot.demo;
+package com.github.wwjwell.microboot.demo;
 
-import com.zhuanglide.microboot.Server;
+import com.github.wwjwell.microboot.Server;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**

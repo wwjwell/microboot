@@ -1,10 +1,10 @@
-package com.zhuanglide.microboot.mvc.resolver.param;
+package com.github.wwjwell.microboot.mvc.resolver.param;
 
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.ApiMethodMapping;
-import com.zhuanglide.microboot.mvc.ApiMethodParam;
-import com.zhuanglide.microboot.mvc.resolver.ApiMethodParamResolver;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ApiMethodMapping;
+import com.github.wwjwell.microboot.mvc.ApiMethodParam;
+import com.github.wwjwell.microboot.mvc.resolver.ApiMethodParamResolver;
 
 import java.lang.reflect.Type;
 import java.math.BigInteger;

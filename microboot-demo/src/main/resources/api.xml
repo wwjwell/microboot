@@ -7,35 +7,35 @@
 
     <context:property-placeholder location="classpath*:*.properties" ignore-unresolvable="true"/>
     <context:annotation-config/>
-    <context:component-scan base-package="com.zhuanglide.microboot.demo.**">
-        <context:include-filter type="annotation" expression="com.zhuanglide.microboot.mvc.annotation.ApiCommand"/>
+    <context:component-scan base-package="com.github.wwjwell.microboot.demo.**">
+        <context:include-filter type="annotation" expression="com.github.wwjwell.microboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
-    <bean name="serverConf" class="com.zhuanglide.microboot.ServerConfig"/>
-    <bean name="server" class="com.zhuanglide.microboot.Server">
+    <bean name="serverConf" class="com.github.wwjwell.microboot.ServerConfig"/>
+    <bean name="server" class="com.github.wwjwell.microboot.Server">
         <property name="serverConfig" ref="serverConf"/>
     </bean>
 
     <!-- jsonView default -->
-    <bean class="com.zhuanglide.microboot.mvc.resolver.view.JsonViewResolver">
+    <bean class="com.github.wwjwell.microboot.mvc.resolver.view.JsonViewResolver">
         <property name="viewName" value="jsonView"/>
         <property name="order" value="1"/>
     </bean>
 
-    <bean class="com.zhuanglide.microboot.mvc.resolver.view.StringViewResolver"/>
+    <bean class="com.github.wwjwell.microboot.mvc.resolver.view.StringViewResolver"/>
 
-    <bean class="com.zhuanglide.microboot.demo.resolver.CustomerApiMethodParamResolver"/>
+    <bean class="com.github.wwjwell.microboot.demo.resolver.CustomerApiMethodParamResolver"/>
 
     <!-- access logger-->
-    <bean class="com.zhuanglide.microboot.mvc.interceptor.AccessInterceptor">
+    <bean class="com.github.wwjwell.microboot.mvc.interceptor.AccessInterceptor">
         <property name="accessLoggerName" value="access"/>
     </bean>
 
-    <bean class="com.zhuanglide.microboot.mvc.ApiDispatcher"/>
+    <bean class="com.github.wwjwell.microboot.mvc.ApiDispatcher"/>
 
-    <bean class="com.zhuanglide.microboot.demo.interceptor.TestInterceptor">
+    <bean class="com.github.wwjwell.microboot.demo.interceptor.TestInterceptor">
         <property name="order" value="1"/>
     </bean>
-    <bean class="com.zhuanglide.microboot.demo.interceptor.TestInterceptor2">
+    <bean class="com.github.wwjwell.microboot.demo.interceptor.TestInterceptor2">
         <property name="order" value="2"/>
     </bean>
 </beans>

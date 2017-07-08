@@ -1,9 +1,9 @@
-package com.zhuanglide.microboot.mvc;
+package com.github.wwjwell.microboot.mvc;
 
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.interceptor.ApiInterceptor;
-import com.zhuanglide.microboot.mvc.resolver.ExceptionResolver;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.interceptor.ApiInterceptor;
+import com.github.wwjwell.microboot.mvc.resolver.ExceptionResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;

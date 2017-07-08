@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <name>microboot-parent</name>
-    <groupId>com.zhuanglide</groupId>
+    <groupId>com.github.wwjwell</groupId>
     <artifactId>microboot-parent</artifactId>
     <version>2.0.0</version>
     <description>http server not follow J2EE using Netty</description>

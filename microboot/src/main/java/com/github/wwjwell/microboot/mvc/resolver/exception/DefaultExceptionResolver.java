@@ -1,10 +1,10 @@
-package com.zhuanglide.microboot.mvc.resolver.exception;
+package com.github.wwjwell.microboot.mvc.resolver.exception;
 
-import com.zhuanglide.microboot.constants.Constants;
-import com.zhuanglide.microboot.mvc.ApiMethodMapping;
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.resolver.ExceptionResolver;
+import com.github.wwjwell.microboot.constants.Constants;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ApiMethodMapping;
+import com.github.wwjwell.microboot.mvc.resolver.ExceptionResolver;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ import org.springframework.core.Ordered;
 public class DefaultExceptionResolver implements ExceptionResolver {
     private Logger logger = LoggerFactory.getLogger(DefaultExceptionResolver.class);
     @Override
-    public void resolveException(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response,Throwable ex) {
+    public void resolveException(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response, Throwable ex) {
         if((ex instanceof IllegalArgumentException) && ex.getMessage()!=null){
             response.setStatus(HttpResponseStatus.BAD_REQUEST);
             logger.warn("reqId="+request.getAttachment(Constants.REQ_ID), ex);

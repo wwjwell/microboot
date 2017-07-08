@@ -1,4 +1,4 @@
-package com.zhuanglide.microboot.http;
+package com.github.wwjwell.microboot.http;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.*;

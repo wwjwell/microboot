@@ -1,6 +1,6 @@
-package com.zhuanglide.microboot.mvc;
+package com.github.wwjwell.microboot.mvc;
 
-import com.zhuanglide.microboot.http.MediaType;
+import com.github.wwjwell.microboot.http.MediaType;
 
 /**
  * Created by wwj on 17/3/9.

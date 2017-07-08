@@ -1,4 +1,4 @@
-package com.zhuanglide.microboot.util;
+package com.github.wwjwell.microboot.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

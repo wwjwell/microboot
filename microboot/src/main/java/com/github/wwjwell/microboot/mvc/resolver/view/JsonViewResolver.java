@@ -1,11 +1,11 @@
-package com.zhuanglide.microboot.mvc.resolver.view;
+package com.github.wwjwell.microboot.mvc.resolver.view;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.http.MediaType;
-import com.zhuanglide.microboot.mvc.ModelAndView;
-import com.zhuanglide.microboot.mvc.resolver.ViewResolver;
+import com.github.wwjwell.microboot.http.MediaType;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ModelAndView;
+import com.github.wwjwell.microboot.mvc.resolver.ViewResolver;
 import org.springframework.beans.factory.InitializingBean;
 
 /**

@@ -1,6 +1,6 @@
-package com.zhuanglide.microboot;
+package com.github.wwjwell.microboot;
 
-import com.zhuanglide.microboot.metrics.BytesMetricsHandler;
+import com.github.wwjwell.microboot.metrics.BytesMetricsHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.http.HttpContentCompressor;

@@ -1,8 +1,8 @@
-package com.zhuanglide.microboot.mvc.interceptor;
+package com.github.wwjwell.microboot.mvc.interceptor;
 
-import com.zhuanglide.microboot.mvc.ApiMethodMapping;
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.mvc.ApiMethodMapping;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
 import org.springframework.core.Ordered;
 
 /**

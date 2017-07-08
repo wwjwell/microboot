@@ -1,7 +1,7 @@
-package com.zhuanglide.microboot.http;
+package com.github.wwjwell.microboot.http;
 
 
-import com.zhuanglide.microboot.util.HttpUtils;
+import com.github.wwjwell.microboot.util.HttpUtils;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpVersion;

@@ -1,12 +1,12 @@
-package com.zhuanglide.microboot;
+package com.github.wwjwell.microboot;
 
-import com.zhuanglide.microboot.constants.Constants;
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.http.HttpHeaderName;
-import com.zhuanglide.microboot.http.MediaType;
-import com.zhuanglide.microboot.mvc.ApiDispatcher;
-import com.zhuanglide.microboot.util.RequestIdGenerator;
+import com.github.wwjwell.microboot.constants.Constants;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.http.HttpHeaderName;
+import com.github.wwjwell.microboot.http.MediaType;
+import com.github.wwjwell.microboot.mvc.ApiDispatcher;
+import com.github.wwjwell.microboot.util.RequestIdGenerator;
 import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.TooLongFrameException;

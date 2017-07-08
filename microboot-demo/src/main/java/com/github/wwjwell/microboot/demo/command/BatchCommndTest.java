@@ -1,11 +1,11 @@
-package com.zhuanglide.microboot.demo.command;
+package com.github.wwjwell.microboot.demo.command;
 
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.ApiDispatcher;
-import com.zhuanglide.microboot.mvc.ModelAndView;
-import com.zhuanglide.microboot.mvc.annotation.ApiCommand;
-import com.zhuanglide.microboot.mvc.annotation.ApiMethod;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ApiDispatcher;
+import com.github.wwjwell.microboot.mvc.ModelAndView;
+import com.github.wwjwell.microboot.mvc.annotation.ApiMethod;
+import com.github.wwjwell.microboot.mvc.annotation.ApiCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;

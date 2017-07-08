@@ -1,4 +1,4 @@
-package com.zhuanglide.microboot;
+package com.github.wwjwell.microboot;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;

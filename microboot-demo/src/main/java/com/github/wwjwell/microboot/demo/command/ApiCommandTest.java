@@ -1,10 +1,10 @@
-package com.zhuanglide.microboot.demo.command;
+package com.github.wwjwell.microboot.demo.command;
 
-import com.zhuanglide.microboot.demo.resolver.CustomerParam;
-import com.zhuanglide.microboot.http.HttpContextRequest;
-import com.zhuanglide.microboot.http.HttpContextResponse;
-import com.zhuanglide.microboot.mvc.ModelAndView;
-import com.zhuanglide.microboot.mvc.annotation.*;
+import com.github.wwjwell.microboot.demo.resolver.CustomerParam;
+import com.github.wwjwell.microboot.http.HttpContextRequest;
+import com.github.wwjwell.microboot.http.HttpContextResponse;
+import com.github.wwjwell.microboot.mvc.ModelAndView;
+import com.github.wwjwell.microboot.mvc.annotation.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,7 +19,7 @@ import java.util.Map;
 @ApiCommand
 public class ApiCommandTest{
     @ApiMethod("/t1")
-    public ModelAndView test1(@ApiParam("name")String name,@ApiParam("age")int age){
+    public ModelAndView test1(@ApiParam("name")String name, @ApiParam("age")int age){
 
         ModelAndView mv = new ModelAndView("jsonView");
         Map<String, Object> res = new HashMap<String, Object>();
@@ -47,7 +47,7 @@ public class ApiCommandTest{
     }
 
     @ApiMethod("/detail/{id}")
-    public ModelAndView detail(@ApiPathVariable("id")int id,String abc,@ApiParam("name")String name){
+    public ModelAndView detail(@ApiPathVariable("id")int id, String abc, @ApiParam("name")String name){
         ModelAndView mv = new ModelAndView("jsonView");
         Map<String, Object> res = new HashMap<String, Object>();
         res.put("Hello","这是一");
