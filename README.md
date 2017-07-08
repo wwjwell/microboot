@@ -50,7 +50,7 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
     <dependency>
       <groupId>com.zhuanglide</groupId>
       <artifactId>microboot</artifactId>
-      <version>1.0.1</version>
+      <version>2.0.0</version>
     </dependency>
 ```
 ### spring 配置 
