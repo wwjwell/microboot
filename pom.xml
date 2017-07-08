@@ -11,8 +11,8 @@
     <packaging>pom</packaging>
     <name>microboot-parent</name>
     <groupId>com.zhuanglide</groupId>
-    <artifactId>micrboot-parent</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <artifactId>microboot-parent</artifactId>
+    <version>2.0.0</version>
     <description>http server not follow J2EE using Netty</description>
 
     <modules>
@@ -236,5 +236,5 @@
             </plugin>
         </plugins>
     </build>
-    <!-- how to deploy ? mvn  repository:bundle-create  microbootboot -am -P release-->
+    <!-- how to deploy ? mvn  repository:bundle-create  -pl microboot -am -P release-->
 </project>
