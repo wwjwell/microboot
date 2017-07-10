@@ -173,7 +173,8 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     public boolean preAndCheckHttpRequest(ChannelHandlerContext ctx, HttpRequest request){
         int times = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().getAndIncrement();
         ctx.channel().attr(Constants.ATTR_REQUEST_COME_TIME).set(System.currentTimeMillis());
-        if (times > serverConfig.getMaxKeepAliveRequests()) {
+        if (serverConfig.getMaxKeepAliveRequests() > 0
+                && times > serverConfig.getMaxKeepAliveRequests()) {
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.protocolVersion(), HttpResponseStatus.FORBIDDEN);
             response.headers().add(HttpHeaderName.CONNECTION, "close");
             response.content().writeBytes("deny by microboot server, too much http request times in one keep-alive".getBytes(serverConfig.getCharset()));
