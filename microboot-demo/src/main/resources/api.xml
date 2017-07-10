@@ -11,7 +11,7 @@
         <context:include-filter type="annotation" expression="com.github.wwjwell.microboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
     <bean name="serverConf" class="com.github.wwjwell.microboot.ServerConfig">
-
+        <property name="maxKeepAliveRequests" value="2"/>
     </bean>
     <bean name="server" class="com.github.wwjwell.microboot.Server">
         <property name="serverConfig" ref="serverConf"/>

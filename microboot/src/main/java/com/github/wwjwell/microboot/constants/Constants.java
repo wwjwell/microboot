@@ -13,6 +13,5 @@ public class Constants {
     public static final String SERVER = "microboot";
     public static final AttributeKey<Long> ATTR_REQ_ID =  AttributeKey.newInstance(Constants.REQ_ID);
     public static final AttributeKey<Boolean> KEEP_ALIVE_KEY =  AttributeKey.newInstance(Constants.KEEP_ALIVE);
-    public static final AttributeKey<Long> ATTR_REQUEST_COME_TIME =  AttributeKey.newInstance("ATTR_REQUEST_COME_TIME");
     public static final AttributeKey<AtomicInteger> ATTR_HTTP_REQ_TIMES = AttributeKey.newInstance("ATTR_HTTP_REQ_TIMES");
 }

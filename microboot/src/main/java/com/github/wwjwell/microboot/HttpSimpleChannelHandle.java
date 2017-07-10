@@ -25,7 +25,9 @@ import org.springframework.context.ApplicationContextAware;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,28 +49,19 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         listener = new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                long times = future.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().decrementAndGet();
-                if (!isKeepAlive(future.channel()) ||
-                        ( serverConfig.getMaxKeepAliveRequests() > 0 && times <= 0)) {
+                if(!isKeepAlive(future.channel())) {
                     future.channel().close();
                 }
                 if(serverConfig.isOpenConnectCostLogger()) {
-                    Long startTime = future.channel().attr(Constants.ATTR_REQUEST_COME_TIME).get();
-                    logger.info("http finish,reqId={},cost={}ms", getReqId(future.channel()), System.currentTimeMillis() - startTime);
+                    Long reqId = getReqId(future.channel());
+                    long startTime = RequestIdGenerator.getTimeByRequestId(reqId);
+                    logger.info("http finish,reqId={},cost={}ms", reqId, System.currentTimeMillis() - startTime);
                 }
             }
         };
     }
 
-    private Long getReqId(Channel channel) {
-        return channel.attr(Constants.ATTR_REQ_ID).get();
-    }
 
-    protected boolean isKeepAlive(Channel channel) {
-        Boolean keepAlive = channel.attr(Constants.KEEP_ALIVE_KEY).get();
-        keepAlive = keepAlive==null?false:keepAlive;
-        return keepAlive && serverConfig.isOpenKeepAlive();
-    }
 
     /**
      * 初始化 ApiMethodDispatcher
@@ -87,21 +80,15 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     @Override
     protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest fullRequest)
             throws Exception {
-        long reqId = genReqId();
-        ctx.channel().attr(Constants.ATTR_REQ_ID).set(reqId);
         if (fullRequest.decoderResult().isFailure()) {
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
             sendResponse(ctx, response);
             return;
         }
-        ctx.channel().attr(Constants.ATTR_REQUEST_COME_TIME).set(System.currentTimeMillis());
-
-        final HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
-        request.addAttachment(Constants.REQ_ID, reqId);
+        final HttpContextRequest request = prepareHttpRequest(ctx, fullRequest);
         ctx.executor().execute(new Runnable() {
             @Override
             public void run() {
-                ctx.channel().attr(Constants.KEEP_ALIVE_KEY).set(HttpUtil.isKeepAlive(fullRequest));
                 //转化为 api 能处理的request\response
                 HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
                 HttpResponse httpResponse;
@@ -169,6 +156,33 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }
     }
 
+    private Long getReqId(Channel channel) {
+        return channel.attr(Constants.ATTR_REQ_ID).get();
+    }
+
+    protected boolean isKeepAlive(Channel channel) {
+        if (!serverConfig.isOpenKeepAlive()) {
+            return false;
+        }
+        Boolean keepAlive = channel.attr(Constants.KEEP_ALIVE_KEY).get();
+        return keepAlive==null?false:keepAlive;
+    }
+
+    protected HttpContextRequest prepareHttpRequest(ChannelHandlerContext ctx, FullHttpRequest fullRequest){
+        long reqId = genReqId();
+        ctx.channel().attr(Constants.ATTR_REQ_ID).set(reqId);
+        int times = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().decrementAndGet();
+        boolean isKeepAlive = true;
+        if(!HttpUtil.isKeepAlive(fullRequest) ||
+                ( serverConfig.getMaxKeepAliveRequests() >= 0 && times <= 0)){
+            isKeepAlive = false;
+        }
+        ctx.channel().attr(Constants.KEEP_ALIVE_KEY).set(isKeepAlive);
+        HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
+        request.addAttachment(Constants.REQ_ID, reqId);
+        return request;
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).set(new AtomicInteger(serverConfig.getMaxKeepAliveRequests()));
@@ -226,9 +240,8 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         if (!response.headers().contains(HttpHeaderName.CONTENT_LENGTH)) {
             response.headers().add(HttpHeaderName.CONTENT_LENGTH, len);
         }
-        if(isKeepAlive(ctx.channel()) &&
-                !response.headers().contains(HttpHeaderName.CONNECTION)){
-            response.headers().add(HttpHeaderName.CONNECTION, Constants.KEEP_ALIVE);
+        if(!response.headers().contains(HttpHeaderName.CONNECTION)) {
+            response.headers().add(HttpHeaderName.CONNECTION,isKeepAlive(ctx.channel())?HttpHeaderValues.KEEP_ALIVE:HttpHeaderValues.CLOSE);
         }
     }
     private SimpleDateFormat getDateFormatter(){
