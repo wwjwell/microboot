@@ -10,7 +10,9 @@
     <context:component-scan base-package="com.github.wwjwell.microboot.demo.**">
         <context:include-filter type="annotation" expression="com.github.wwjwell.microboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
-    <bean name="serverConf" class="com.github.wwjwell.microboot.ServerConfig"/>
+    <bean name="serverConf" class="com.github.wwjwell.microboot.ServerConfig">
+
+    </bean>
     <bean name="server" class="com.github.wwjwell.microboot.Server">
         <property name="serverConfig" ref="serverConf"/>
     </bean>

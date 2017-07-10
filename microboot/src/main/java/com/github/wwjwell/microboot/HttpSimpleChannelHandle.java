@@ -47,7 +47,9 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         listener = new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                if(!isKeepAlive(future.channel())) {
+                long times = future.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().decrementAndGet();
+                if (!isKeepAlive(future.channel()) ||
+                        ( serverConfig.getMaxKeepAliveRequests() > 0 && times <= 0)) {
                     future.channel().close();
                 }
                 if(serverConfig.isOpenConnectCostLogger()) {
@@ -92,10 +94,8 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             sendResponse(ctx, response);
             return;
         }
+        ctx.channel().attr(Constants.ATTR_REQUEST_COME_TIME).set(System.currentTimeMillis());
 
-        if (!preAndCheckHttpRequest(ctx, fullRequest)) {
-            return;
-        }
         final HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
         request.addAttachment(Constants.REQ_ID, reqId);
         ctx.executor().execute(new Runnable() {
@@ -169,24 +169,9 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }
     }
 
-
-    public boolean preAndCheckHttpRequest(ChannelHandlerContext ctx, HttpRequest request){
-        int times = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().getAndIncrement();
-        ctx.channel().attr(Constants.ATTR_REQUEST_COME_TIME).set(System.currentTimeMillis());
-        if (serverConfig.getMaxKeepAliveRequests() > 0
-                && times > serverConfig.getMaxKeepAliveRequests()) {
-            DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.protocolVersion(), HttpResponseStatus.FORBIDDEN);
-            response.headers().add(HttpHeaderName.CONNECTION, "close");
-            response.content().writeBytes("deny by microboot server, too much http request times in one keep-alive".getBytes(serverConfig.getCharset()));
-            ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-            return false;
-        }
-        return true;
-    }
-
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).set(new AtomicInteger(1));
+        ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).set(new AtomicInteger(serverConfig.getMaxKeepAliveRequests()));
         super.channelActive(ctx);
     }
 
