@@ -36,4 +36,8 @@ public class RequestIdGenerator {
         }
         return (currentTime << BITS) + count;
     }
+
+    public static long getTimeByRequestId(long reqId) {
+        return reqId >>> BITS;
+    }
 }

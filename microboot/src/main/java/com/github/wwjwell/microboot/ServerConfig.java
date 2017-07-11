@@ -62,7 +62,7 @@ public class ServerConfig {
     private int workerThreadNum;        //netty work thread
     private boolean openMetricsLogger = false; //流量统计
     private boolean openConnectCostLogger = false; //连接耗时日志
-    private String headerServer = Constants.SERVER;
+    private String headerServer = "microboot";
     private Executor executor;
 
     public boolean epollAvailable(){
