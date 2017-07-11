@@ -173,7 +173,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     public boolean preAndCheckHttpRequest(ChannelHandlerContext ctx, HttpRequest request){
         int times = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().getAndIncrement();
         ctx.channel().attr(Constants.ATTR_REQUEST_COME_TIME).set(System.currentTimeMillis());
-        if (serverConfig.getMaxKeepAliveRequests() > 0
+        if (serverConfig.getMaxKeepAliveRequests() > -1
                 && times > serverConfig.getMaxKeepAliveRequests()) {
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.protocolVersion(), HttpResponseStatus.FORBIDDEN);
             response.headers().add(HttpHeaderName.CONNECTION, "close");
