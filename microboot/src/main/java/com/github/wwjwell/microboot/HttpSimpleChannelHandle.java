@@ -52,11 +52,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                 if(!isKeepAlive(future.channel())) {
                     future.channel().close();
                 }
-                if(serverConfig.isOpenConnectCostLogger()) {
-                    Long reqId = getReqId(future.channel());
-                    long startTime = getActiveTime(future.channel());
-                    logger.info("http finish,reqId={},cost={}ms", reqId, System.currentTimeMillis() - startTime);
-                }
             }
         };
     }
@@ -188,6 +183,17 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).set(new AtomicInteger(serverConfig.getMaxKeepAliveRequests()));
         ctx.channel().attr(Constants.ATTR_CHANNEL_ACTIVE_TIME).set(System.currentTimeMillis());
         super.channelActive(ctx);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if(serverConfig.isOpenConnectCostLogger()) {
+            Long reqId = getReqId(ctx.channel());
+            long startTime = getActiveTime(ctx.channel());
+            int times = serverConfig.getMaxKeepAliveRequests() - ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().get();
+            logger.info("http finish, last reqId={}, keep-alive times={}, cost={}ms", reqId, times, System.currentTimeMillis() - startTime);
+        }
+        super.channelInactive(ctx);
     }
 
     private long getActiveTime(Channel channel) {
