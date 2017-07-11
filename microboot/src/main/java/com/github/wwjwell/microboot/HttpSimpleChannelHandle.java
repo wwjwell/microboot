@@ -152,7 +152,13 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     }
 
     private Long getReqId(Channel channel) {
-        return channel.attr(Constants.ATTR_REQ_ID).get();
+        Long reqId = channel.attr(Constants.ATTR_REQ_ID).get();
+        //illegal request will occur NullPointException, so fix this exception
+        if (null == reqId) {
+            reqId = RequestIdGenerator.getRequestId();
+            channel.attr(Constants.ATTR_REQ_ID).set(reqId);
+        }
+        return reqId;
     }
 
     protected boolean isKeepAlive(Channel channel) {
