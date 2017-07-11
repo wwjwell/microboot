@@ -54,7 +54,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                 }
                 if(serverConfig.isOpenConnectCostLogger()) {
                     Long reqId = getReqId(future.channel());
-                    long startTime = RequestIdGenerator.getTimeByRequestId(reqId);
+                    long startTime = getActiveTime(future.channel());
                     logger.info("http finish,reqId={},cost={}ms", reqId, System.currentTimeMillis() - startTime);
                 }
             }
@@ -186,30 +186,36 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).set(new AtomicInteger(serverConfig.getMaxKeepAliveRequests()));
+        ctx.channel().attr(Constants.ATTR_CHANNEL_ACTIVE_TIME).set(System.currentTimeMillis());
         super.channelActive(ctx);
+    }
+
+    private long getActiveTime(Channel channel) {
+        return channel.attr(Constants.ATTR_CHANNEL_ACTIVE_TIME).get();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.warn("reqId="+getReqId(ctx.channel()), cause);
-        FullHttpResponse response;
-        try {
-            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-            if (cause instanceof TooLongFrameException) {
-                response.setStatus(HttpResponseStatus.BAD_REQUEST);
-            }else {
-                response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-            }
-            String ex = cause.getMessage();
-            if (null == ex) {
-                ex = String.valueOf(cause);
-            }
-            response.content().writeBytes(ex.getBytes(getServerConfig().getCharset()));
-        } catch (Exception e) {
-            logger.error("reqId="+getReqId(ctx.channel()), e);
-            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-        }
-        sendResponse(ctx, response);
+        logger.error("reqId=" + getReqId(ctx.channel()) + ",active times=" + (System.currentTimeMillis() - getActiveTime(ctx.channel())) + "ms,address=" + ctx.channel().remoteAddress().toString(), cause);
+        ctx.close();
+//        FullHttpResponse response;
+//        try {
+//            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+//            if (cause instanceof TooLongFrameException) {
+//                response.setStatus(HttpResponseStatus.BAD_REQUEST);
+//            }else {
+//                response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+//            }
+//            String ex = cause.getMessage();
+//            if (null == ex) {
+//                ex = String.valueOf(cause);
+//            }
+//            response.content().writeBytes(ex.getBytes(getServerConfig().getCharset()));
+//        } catch (Exception e) {
+//            logger.error("reqId="+getReqId(ctx.channel()), e);
+//            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+//        }
+//        sendResponse(ctx, response);
     }
 
 

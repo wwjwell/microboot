@@ -4,6 +4,7 @@ import com.github.wwjwell.microboot.constants.Constants;
 import com.github.wwjwell.microboot.http.HttpContextRequest;
 import com.github.wwjwell.microboot.http.HttpContextResponse;
 import com.github.wwjwell.microboot.mvc.ApiMethodMapping;
+import com.github.wwjwell.microboot.util.RequestIdGenerator;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,14 +26,7 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     private String split = "|,|";
     protected int order = HIGHEST_PRECEDENCE + 100;
 
-    public final static String ATTR_REQ_START_TIME = "REQ_START_TIME";
     public final static String ATTR_REQ_SYS_PARAMS = "REQ_SYS_PARAMS";
-
-    @Override
-    public boolean preDispatch(HttpContextRequest request, HttpContextResponse response) {
-        request.addAttachment(ATTR_REQ_START_TIME, System.currentTimeMillis());
-        return true;
-    }
 
     @Override
     public boolean postHandler(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response){
@@ -51,10 +45,11 @@ public class AccessInterceptor extends AbstractApiInterceptor {
     @Override
     public void afterCompletion(ApiMethodMapping mapping, HttpContextRequest request, HttpContextResponse response, Throwable throwable) {
         try {
-            long startTime = (Long) request.getAttachment(ATTR_REQ_START_TIME);
             String params = (String) request.getAttachment(ATTR_REQ_SYS_PARAMS);
             StringBuffer log = new StringBuffer();
-            log.append(split).append("reqId=").append(request.getAttachment(Constants.REQ_ID));
+            long reqId = (Long)request.getAttachment(Constants.REQ_ID);
+            long startTime = RequestIdGenerator.getTimeByRequestId(reqId);
+            log.append(split).append("reqId=").append(reqId);
             log.append(split).append(request.getHttpMethod());
             log.append(split).append(request.getHttpVersion().text());
             log.append(split).append(request.getHeader(HttpHeaderNames.HOST));
