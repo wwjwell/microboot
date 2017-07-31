@@ -97,7 +97,7 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
         }    
     }
     
-    curl -d 'name=tomcat&id=100' http://localhost:8080/json/test   
+    curl -d 'name=tomcat&id=100' 'http://localhost:8080/json/test'   
     #输出 {"name":"tomcat","id":100}
 ```
 ### 更多例子和用法
@@ -143,4 +143,4 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
 ```
     <bean class="com.github.wwjwell.microboot.mvc.ApiDispatcher"/>
 ```
-具体用法参考microboot-demo的 BatchCommndTest类
+具体用法参考microboot-demo的 com.github.wwjwell.microboot.demo.command.BatchCommndTest类
