@@ -69,7 +69,7 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
     	<bean id="serverConfig" class="com.vdian.microboot.ServerConfig">
     		<property name="port" value="8080"/>
     		<property name="maxLength" value="65536"/> <!-- 传输的报文过大，会报错 -->
-    		<property name="maxKeepAliveRequests" value="1000"/>  <!-- keepavlie 最大请求数 -->
+    		<property name="maxKeepAliveRequests" value="1000"/>  <!-- keep-alive 最大请求数 -->
     		<property name="executor" ref="threadPoolTaskExecutor"/> <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
     		<!-- 打开调试开关 ，生产环境请关闭 -->
     		<property name="openConnectCostLogger" value="true"/>
