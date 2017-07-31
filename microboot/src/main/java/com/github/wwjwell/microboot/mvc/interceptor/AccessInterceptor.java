@@ -47,7 +47,10 @@ public class AccessInterceptor extends AbstractApiInterceptor {
         try {
             String params = (String) request.getAttachment(ATTR_REQ_SYS_PARAMS);
             StringBuffer log = new StringBuffer();
-            long reqId = (Long)request.getAttachment(Constants.REQ_ID);
+            Long reqId = (Long)request.getAttachment(Constants.REQ_ID);
+            if (reqId == null) {//will not goto this
+                reqId = RequestIdGenerator.getRequestId();
+            }
             long startTime = RequestIdGenerator.getTimeByRequestId(reqId);
             log.append(split).append("reqId=").append(reqId);
             log.append(split).append(request.getHttpMethod());

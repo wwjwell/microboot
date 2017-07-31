@@ -88,6 +88,11 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                 HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
                 HttpResponse httpResponse;
                 try {
+                    //compressor support
+                    String accpetEncoding = request.getHeader(HttpHeaderName.ACCEPT_ENCODING);
+                    if(null != accpetEncoding && accpetEncoding.length()>0) {
+                        response.addHeader(HttpHeaderName.ACCEPT_ENCODING, accpetEncoding);
+                    }
                     dispatcher.doService(request, response);
                     if(null == response){
                         httpResponse = new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST);
@@ -100,7 +105,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                             httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
                             httpResponse.headers().add(response.headers());
                             httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
-                            packageResponseHeader(httpResponse, fileLength, ctx);
+                            packageResponseHeader(httpResponse, ctx);
                             packageFileHeaders(httpResponse, response.getFile());
                             ctx.write(httpResponse);
                             ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, serverConfig.getChunkSize())),ctx.newProgressivePromise());
@@ -246,17 +251,18 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         if (response.content() != null) {
             len = response.content().readableBytes();
         }
-        packageResponseHeader(response, len, ctx);
+        packageResponseHeader(response, ctx);
+
+        if (!response.headers().contains(HttpHeaderName.CONTENT_LENGTH)) {
+            response.headers().add(HttpHeaderName.CONTENT_LENGTH, len);
+        }
     }
 
-    protected void packageResponseHeader(HttpResponse response,long len,ChannelHandlerContext ctx) {
+    protected void packageResponseHeader(HttpResponse response,ChannelHandlerContext ctx) {
         if(serverConfig.getHeaderServer() != null
                 && serverConfig.getHeaderServer().length()>0 &&
                 !response.headers().contains(HttpHeaderName.SERVER)){
             response.headers().add(HttpHeaderName.SERVER, serverConfig.getHeaderServer());
-        }
-        if (!response.headers().contains(HttpHeaderName.CONTENT_LENGTH)) {
-            response.headers().add(HttpHeaderName.CONTENT_LENGTH, len);
         }
         if(!response.headers().contains(HttpHeaderName.CONNECTION)) {
             response.headers().add(HttpHeaderName.CONNECTION,isKeepAlive(ctx.channel())?HttpHeaderValues.KEEP_ALIVE:HttpHeaderValues.CLOSE);
