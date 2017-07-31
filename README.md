@@ -58,7 +58,7 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
 ```
     <context:component-scan base-package="com.github.wwjwell.microboot.demo.**">
         <!-- 扫描ApiCommand注解 -->
-        <context:include-filter type="annotation" expression="ApiCommand"/>
+        <context:include-filter type="annotation" expression="com.github.wwjwell.microboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
     <bean name="server" class="com.github.wwjwell.microboot.ServerConfig">
         <property name="port" value="8080"/> <!-- set port=8080 -->
