@@ -55,11 +55,26 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
 ```
 ### spring 配置 
 * 可参照 microboot-demo/src/main/resources/api.xml
-```
+``` 
     <context:component-scan base-package="com.github.wwjwell.microboot.demo.**">
         <!-- 扫描ApiCommand注解 -->
         <context:include-filter type="annotation" expression="com.github.wwjwell.microboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
+    <bean id="threadPoolTaskExecutor" <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
+    		  class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+    		<property name="corePoolSize" value="8" />
+    		<property name="threadNamePrefix" value="microboot-task-"/>
+    		<property name="waitForTasksToCompleteOnShutdown" value="true" />
+    	</bean>
+    	<bean id="serverConfig" class="com.vdian.microboot.ServerConfig">
+    		<property name="port" value="8080"/>
+    		<property name="maxLength" value="65536"/> <!-- 传输的报文过大，会报错 -->
+    		<property name="maxKeepAliveRequests" value="1000"/>  <!-- keepavlie 最大请求数 -->
+    		<property name="executor" ref="threadPoolTaskExecutor"/> <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
+    		<!-- 打开调试开关 ，生产环境请关闭 -->
+    		<property name="openConnectCostLogger" value="true"/>
+    		<property name="openMetricsLogger" value="true"/>
+    	</bean>
     <bean name="server" class="com.github.wwjwell.microboot.ServerConfig">
         <property name="port" value="8080"/> <!-- set port=8080 -->
     </bean>    
