@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * HTTP handle
  */
 @Sharable
-public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHttpRequest> implements ApplicationContextAware,InitializingBean{
+public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<HttpContextRequest> implements ApplicationContextAware,InitializingBean{
     private Logger logger = LoggerFactory.getLogger(HttpSimpleChannelHandle.class);
     private ServerConfig serverConfig;
     private ApplicationContext context;
@@ -73,20 +73,14 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     }
 
     @Override
-    protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest fullRequest)
+    protected void channelRead0(final ChannelHandlerContext ctx, final HttpContextRequest request)
             throws Exception {
-        if (fullRequest.decoderResult().isFailure()) {
-            DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-            sendResponse(ctx, response);
-            return;
-        }
-        final HttpContextRequest request = prepareHttpRequest(ctx, fullRequest);
+        prepareHttpRequest(ctx, request);
         ctx.executor().execute(new Runnable() {
             @Override
             public void run() {
                 //转化为 api 能处理的request\response
-                HttpContextResponse response = new HttpContextResponse(fullRequest.protocolVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
-                HttpResponse httpResponse;
+                HttpContextResponse response = new HttpContextResponse(request.getHttpVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
                 try {
                     //compressor support
                     String accpetEncoding = request.getHeader(HttpHeaderName.ACCEPT_ENCODING);
@@ -94,67 +88,16 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
                         response.addHeader(HttpHeaderName.ACCEPT_ENCODING, accpetEncoding);
                     }
                     dispatcher.doService(request, response);
-                    if(null == response){
-                        httpResponse = new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST);
-                    }else{
-                        //文件
-                        if (response.getFile() != null) {
-                            RandomAccessFile raf = new RandomAccessFile(response.getFile(), "r");
-                            long fileLength = raf.length();
-                            //filename
-                            httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
-                            httpResponse.headers().add(response.headers());
-                            httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
-                            packageResponseHeader(httpResponse, ctx);
-                            packageFileHeaders(httpResponse, response.getFile());
-                            ctx.write(httpResponse);
-                            ctx.write(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, serverConfig.getChunkSize())),ctx.newProgressivePromise());
-                            sendResponse(ctx, LastHttpContent.EMPTY_LAST_CONTENT);
-                            return;
-                        }else if(response.getInputStream() != null){
-                            httpResponse = new DefaultHttpResponse(request.getHttpVersion(), response.getStatus());
-                            httpResponse.headers().add(response.headers());
-                            httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
-                            if(isKeepAlive(ctx.channel()) &&
-                                    !response.headers().contains(HttpHeaderName.CONNECTION)){
-                                response.headers().add(HttpHeaderName.CONNECTION, "keep-alive");
-                            }
-                            ctx.write(httpResponse);
-                            ctx.write(new HttpChunkedInput(new ChunkedStream(response.getInputStream(),serverConfig.getChunkSize())),ctx.newProgressivePromise());
-                            sendResponse(ctx, LastHttpContent.EMPTY_LAST_CONTENT);
-                            return;
-                        }else{
-                            DefaultFullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(response.getVersion(), response.getStatus());
-                            fullHttpResponse.headers().clear();
-                            fullHttpResponse.headers().add(response.headers());
-                            if(response.content()!=null) {
-                                fullHttpResponse.content().writeBytes(response.content());
-                            }
-                            httpResponse = fullHttpResponse;
-                        }
-                        sendResponse(ctx, httpResponse);
-                        return;
-                    }
                 } catch (Exception e) {
                     logger.error("", e);
-                    httpResponse = new DefaultFullHttpResponse(fullRequest.protocolVersion(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
+                    response = new HttpContextResponse(request.getHttpVersion(), HttpResponseStatus.BAD_REQUEST, getServerConfig().getCharset());
                 }
-                sendResponse(ctx, httpResponse);
+                sendResponse(ctx, response);
             }
         });
     }
 
-    private void packageFileHeaders(HttpResponse response, File fileToCache) {
-        if(!response.headers().contains(HttpHeaderName.DATE)) {
-            response.headers().set(HttpHeaderName.DATE, getDateFormatter().format(System.currentTimeMillis()));
-        }
-        if(!response.headers().contains(HttpHeaderName.CONTENT_TYPE)) {
-            response.headers().set(HttpHeaderName.CONTENT_TYPE, MediaType.getContentType(fileToCache.getName()));
-        }
-        if(!response.headers().contains(HttpHeaderName.LAST_MODIFIED)) {
-            response.headers().set(HttpHeaderName.LAST_MODIFIED, getDateFormatter().format(new Date(fileToCache.lastModified())));
-        }
-    }
+
 
     private Long getReqId(Channel channel) {
         Long reqId = channel.attr(Constants.ATTR_REQ_ID).get();
@@ -174,17 +117,16 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         return keepAlive==null?false:keepAlive;
     }
 
-    protected HttpContextRequest prepareHttpRequest(ChannelHandlerContext ctx, FullHttpRequest fullRequest){
+    protected HttpContextRequest prepareHttpRequest(ChannelHandlerContext ctx, HttpContextRequest request){
         long reqId = genReqId();
         ctx.channel().attr(Constants.ATTR_REQ_ID).set(reqId);
         int times = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().decrementAndGet();
         boolean isKeepAlive = true;
-        if(!HttpUtil.isKeepAlive(fullRequest) ||
+        if(!isKeepAlive(request) ||
                 ( serverConfig.getMaxKeepAliveRequests() >= 0 && times <= 0)){
             isKeepAlive = false;
         }
         ctx.channel().attr(Constants.ATTR_KEEP_ALIVE).set(isKeepAlive);
-        HttpContextRequest request = new HttpContextRequest(fullRequest, getServerConfig().getCharset());
         request.addAttachment(Constants.REQ_ID, reqId);
         return request;
     }
@@ -215,24 +157,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.error("reqId=" + getReqId(ctx.channel()) + ",active times=" + (System.currentTimeMillis() - getActiveTime(ctx.channel())) + "ms,address=" + ctx.channel().remoteAddress().toString(), cause);
         ctx.close();
-//        FullHttpResponse response;
-//        try {
-//            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-//            if (cause instanceof TooLongFrameException) {
-//                response.setStatus(HttpResponseStatus.BAD_REQUEST);
-//            }else {
-//                response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-//            }
-//            String ex = cause.getMessage();
-//            if (null == ex) {
-//                ex = String.valueOf(cause);
-//            }
-//            response.content().writeBytes(ex.getBytes(getServerConfig().getCharset()));
-//        } catch (Exception e) {
-//            logger.error("reqId="+getReqId(ctx.channel()), e);
-//            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-//        }
-//        sendResponse(ctx, response);
     }
 
 
@@ -246,7 +170,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         super.userEventTriggered(ctx,evt);
     }
 
-    protected void packageFullResponseHeader(FullHttpResponse response,ChannelHandlerContext ctx){
+    protected void packageFullResponseHeader(HttpContextResponse response,ChannelHandlerContext ctx){
         long len = 0;
         if (response.content() != null) {
             len = response.content().readableBytes();
@@ -258,7 +182,7 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
         }
     }
 
-    protected void packageResponseHeader(HttpResponse response,ChannelHandlerContext ctx) {
+    protected void packageResponseHeader(HttpContextResponse response,ChannelHandlerContext ctx) {
         if(serverConfig.getHeaderServer() != null
                 && serverConfig.getHeaderServer().length()>0 &&
                 !response.headers().contains(HttpHeaderName.SERVER)){
@@ -268,18 +192,31 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<FullHtt
             response.headers().add(HttpHeaderName.CONNECTION,isKeepAlive(ctx.channel())?HttpHeaderValues.KEEP_ALIVE:HttpHeaderValues.CLOSE);
         }
     }
-    private SimpleDateFormat getDateFormatter(){
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-        dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return dateFormatter;
-    }
 
-    protected void sendResponse(ChannelHandlerContext ctx, HttpObject response) {
-        if (response instanceof FullHttpResponse) {
-            packageFullResponseHeader((FullHttpResponse) response, ctx);
-        }
+
+    protected void sendResponse(ChannelHandlerContext ctx, HttpContextResponse response) {
+        packageFullResponseHeader(response, ctx);
         ctx.writeAndFlush(response).addListener(listener);
     }
+
+    /**
+     * 判断是否是keep-alive
+     * @param request
+     * @return
+     */
+    private boolean isKeepAlive(HttpContextRequest request) {
+        CharSequence connection = request.getHeader(HttpHeaderNames.CONNECTION);
+        if (connection != null && HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(connection)) {
+            return false;
+        }
+
+        if (request.getHttpVersion().isKeepAliveDefault()) {
+            return !HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(connection);
+        } else {
+            return HttpHeaderValues.KEEP_ALIVE.contentEqualsIgnoreCase(connection);
+        }
+    }
+
 
     @Override
     public void afterPropertiesSet() throws Exception {

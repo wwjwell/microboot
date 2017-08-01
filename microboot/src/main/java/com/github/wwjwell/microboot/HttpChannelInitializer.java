@@ -36,6 +36,7 @@ public class HttpChannelInitializer extends ChannelInitializer {
         }
         ch.pipeline().addLast("aggregator", new HttpObjectAggregator(serverConfig.getMaxLength()));
         ch.pipeline().addLast("chunk", new ChunkedWriteHandler());
+        ch.pipeline().addLast("microhttp-codec", new MicrobootHttpCodec(serverConfig));
         ch.pipeline().addLast(handle);
     }
 }

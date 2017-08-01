@@ -1,5 +1,6 @@
 package com.github.wwjwell.microboot.constants;
 
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.AttributeKey;
 
 import java.util.concurrent.atomic.AtomicInteger;
