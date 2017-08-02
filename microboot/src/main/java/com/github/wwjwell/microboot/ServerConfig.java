@@ -56,7 +56,7 @@ public class ServerConfig {
      * best compression.  0 means no compression.  The default
      * compression level is 6
      */
-    private boolean openCompression = false;    //启用压缩
+    private boolean openCompression = true;    //默认启用压缩
     private int compressionLevel = 6;
     private int bossThreadNum;          //netty boss Thread
     private int workerThreadNum;        //netty work thread

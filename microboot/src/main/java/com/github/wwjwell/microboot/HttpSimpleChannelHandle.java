@@ -74,11 +74,6 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<HttpCon
                 //转化为 api 能处理的request\response
                 HttpContextResponse response = new HttpContextResponse(request.getHttpVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
                 try {
-                    //compressor support
-                    String accpetEncoding = request.getHeader(HttpHeaderName.ACCEPT_ENCODING);
-                    if(null != accpetEncoding && accpetEncoding.length()>0) {
-                        response.addHeader(HttpHeaderName.ACCEPT_ENCODING, accpetEncoding);
-                    }
                     dispatcher.doService(request, response);
                 } catch (Exception e) {
                     logger.error("", e);

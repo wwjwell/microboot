@@ -149,8 +149,9 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
     }
 ```
 
-# 多接口合并
-
+# 接口合并
+    暴露内部doProcess方法，可以操控任意一个或多个ApiMethod的返回。可以比较轻易的获取改方法返回，通常用于接口合并，减少请求交互次数
+    BatchCommandTest例子：APP需要请求/t1,/t2 接口，可以直接请求/batch，batch根据约定可以组装t1,t2的返回值
 * 设置spring配置文件 需要增加一个设置，获取apiDispatcher内部处理类，调用doProcess方法
 ```
     <bean class="com.github.wwjwell.microboot.mvc.ApiDispatcher"/>
