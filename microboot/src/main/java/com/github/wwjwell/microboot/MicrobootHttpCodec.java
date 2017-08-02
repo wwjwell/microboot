@@ -4,6 +4,7 @@ import com.github.wwjwell.microboot.http.HttpContextRequest;
 import com.github.wwjwell.microboot.http.HttpContextResponse;
 import com.github.wwjwell.microboot.http.HttpHeaderName;
 import com.github.wwjwell.microboot.http.MediaType;
+import com.github.wwjwell.microboot.util.HttpUtils;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
@@ -32,38 +33,46 @@ public class MicrobootHttpCodec extends MessageToMessageCodec<FullHttpRequest, H
         this.serverConfig = serverConfig;
     }
 
+    /**
+     *HttpContextResponse - > HttpResponse + httpContent(if trunked)
+     * @param ctx
+     * @param response
+     * @param out
+     * @throws Exception
+     */
     @Override
     protected void encode(ChannelHandlerContext ctx, HttpContextResponse response, List<Object> out) throws Exception {
-        //文件
         DefaultHttpResponse httpResponse = new DefaultHttpResponse(response.getVersion(), response.getStatus());
-        httpResponse.headers().clear();
         httpResponse.headers().add(response.headers());
         //out add header
         out.add(httpResponse);
-
         //chunked
         if (response.getFile() != null) {
             RandomAccessFile raf = new RandomAccessFile(response.getFile(), "r");
             long fileLength = raf.length();
             //filename
-            httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
+            httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED);
             packageFileHeaders(httpResponse, response.getFile());
-
             out.add(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, serverConfig.getChunkSize())));
-            out.add(LastHttpContent.EMPTY_LAST_CONTENT);
         }else if(response.getInputStream() != null){
-            httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, "chunked");
-            out.add(httpResponse);
+            httpResponse.headers().add(HttpHeaderName.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED);
             out.add(new HttpChunkedInput(new ChunkedStream(response.getInputStream(),serverConfig.getChunkSize())));
-            out.add(LastHttpContent.EMPTY_LAST_CONTENT);
-            return;
+
         }else{ //normal
             if(response.content()!=null) {
                 out.add(new DefaultHttpContent(response.content()));
             }
         }
+        out.add(LastHttpContent.EMPTY_LAST_CONTENT);
     }
 
+    /**
+     * FullHttpRequest -> httpContextRequest
+     * @param ctx
+     * @param msg
+     * @param out
+     * @throws Exception
+     */
     @Override
     protected void decode(ChannelHandlerContext ctx, FullHttpRequest msg, List<Object> out) throws Exception {
         if (msg.decoderResult().isFailure()) {
@@ -74,7 +83,35 @@ public class MicrobootHttpCodec extends MessageToMessageCodec<FullHttpRequest, H
             ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
             return;
         }
-        HttpContextRequest request = new HttpContextRequest(msg, serverConfig.getCharset());
+        //convert to request
+        HttpContextRequest request = new HttpContextRequest(msg.protocolVersion(), msg.headers(), serverConfig.getCharset());
+        request.setTime(System.currentTimeMillis());
+        request.setCharset(serverConfig.getCharset());
+        request.setHttpMethod(msg.method().name().toUpperCase());
+        String requestUrl = msg.uri();
+        if(requestUrl!=null) {
+            int idx = requestUrl.indexOf("?");
+            if (idx > 0) {
+                requestUrl = requestUrl.substring(0, idx);
+            }
+        }
+        requestUrl = HttpUtils.joinOptimizePath(requestUrl);
+        request.setRequestUrl(requestUrl);
+
+        String body = "";
+        if (null != msg.content()) {
+            int len = msg.content().readableBytes();
+            if (len > 0) {
+                msg.content().markReaderIndex();
+                byte[] bytes = new byte[len];
+                msg.content().readBytes(bytes);
+                body = new String(bytes, request.getCharset());
+                msg.content().resetReaderIndex();
+            }
+        }
+        request.setBody(body);
+        HttpUtils.fillParamsMap(msg, request, request.getCharset());     //init http params
+        HttpUtils.fillCookies(msg, request);      //init http cookie
         out.add(request);
     }
 

@@ -4,15 +4,13 @@ import com.github.wwjwell.microboot.constants.Constants;
 import com.github.wwjwell.microboot.http.HttpContextRequest;
 import com.github.wwjwell.microboot.http.HttpContextResponse;
 import com.github.wwjwell.microboot.http.HttpHeaderName;
-import com.github.wwjwell.microboot.http.MediaType;
 import com.github.wwjwell.microboot.mvc.ApiDispatcher;
 import com.github.wwjwell.microboot.util.RequestIdGenerator;
 import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.handler.codec.TooLongFrameException;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedFile;
-import io.netty.handler.stream.ChunkedStream;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +20,6 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.io.File;
-import java.io.RandomAccessFile;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -171,13 +163,12 @@ public class HttpSimpleChannelHandle extends SimpleChannelInboundHandler<HttpCon
     }
 
     protected void packageFullResponseHeader(HttpContextResponse response,ChannelHandlerContext ctx){
-        long len = 0;
-        if (response.content() != null) {
-            len = response.content().readableBytes();
-        }
         packageResponseHeader(response, ctx);
-
         if (!response.headers().contains(HttpHeaderName.CONTENT_LENGTH)) {
+            long len = 0;
+            if (response.content() != null) {
+                len = response.content().readableBytes();
+            }
             response.headers().add(HttpHeaderName.CONTENT_LENGTH, len);
         }
     }
