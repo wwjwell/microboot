@@ -23,9 +23,10 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
     private Logger logger = LoggerFactory.getLogger(Server.class);
     private ServerConfig serverConfig;
     private ApplicationContext context;
-    private HttpSimpleChannelHandle httpSimpleChannelHandle;
+    private Http1ServerHandler httpSimpleChannelHandle;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
+    private boolean ssl;
     private Class<? extends ServerChannel> socketChannelClass;
     /**
      * Http服务启动
@@ -37,7 +38,7 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(socketChannelClass)
-                    .childHandler(new HttpChannelInitializer(serverConfig,httpSimpleChannelHandle))
+                    .childHandler(new HttpServerInitializer(serverConfig,httpSimpleChannelHandle))
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.TCP_NODELAY,true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -83,9 +84,9 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
      */
     protected void initStrategies(ApplicationContext context) {
         try {
-            httpSimpleChannelHandle = context.getBean(HttpSimpleChannelHandle.class);
+            httpSimpleChannelHandle = context.getBean(Http1ServerHandler.class);
         } catch (NoSuchBeanDefinitionException e) {
-            httpSimpleChannelHandle = context.getAutowireCapableBeanFactory().createBean(HttpSimpleChannelHandle.class);
+            httpSimpleChannelHandle = context.getAutowireCapableBeanFactory().createBean(Http1ServerHandler.class);
             httpSimpleChannelHandle.setServerConfig(getServerConfig());
         }
     }
