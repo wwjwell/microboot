@@ -1,6 +1,6 @@
 # microboot 是什么，能做什么？
 ### microboot是什么
-microboot 是基于Netty 开发的一个Http服务框架，自身提供http server功能，jar包方式启动，使用方式与架构与SpringMVC极其相似，microboot没有遵循j2ee规范，非常轻量级，并且高性能。
+microboot 是基于Netty 开发的一个Http服务框架，自身提供http server功能，jar包方式启动，使用方式与架构与SpringMVC极其相似，microboot没有遵循java web规范，非常轻量级，并且高性能。
 ### microboot能做什么
 microboot天生是为了后端纯接口服务做得框架，具有开发、部署简单，高性能并且稳定，支持所有http请求方式，支持多视图，并且可以根据自己的要求自定义ViewResolver返回自己想要的结果，目前服务只String、JSONView 两种返回。
 
@@ -15,7 +15,7 @@ microboot天生是为了后端纯接口服务做得框架，具有开发、部�
 - 许多后端接口使用的特性支持，如多接口合并
 - 等等
 ### 缺点
-- 由于不支持j2ee规范，所以不能支持jsp（绝对不会支持），目前还不支持静态资源(作者还没写，以后会支持)，freemark等模板语言不支持(作者还没有写，可以自己处理直接返回String)
+- 由于不支持java web规范，所以不能支持jsp（绝对不会支持），目前还不支持静态资源(作者还没写，以后会支持)，freemark等模板语言不支持(作者还没有写，可以自己处理直接返回String)
 - 不是标准，非权威
 
 # microboot设计思想
