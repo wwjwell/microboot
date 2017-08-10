@@ -130,6 +130,11 @@ public class Http1ServerHandler extends SimpleChannelInboundHandler<HttpContextR
         if(serverConfig.isOpenConnectCostLogger()) {
             Long reqId = getReqId(ctx.channel());
             long startTime = getActiveTime(ctx.channel());
+            AtomicInteger reqTimes = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get();
+            if (null == reqTimes) {
+                reqTimes = new AtomicInteger();
+                ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).set(reqTimes);
+            }
             int times = serverConfig.getMaxKeepAliveRequests() - ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().get();
             logger.info("http finish, last reqId={}, keep-alive times={}, cost={}ms", reqId, times, System.currentTimeMillis() - startTime);
         }
@@ -137,7 +142,8 @@ public class Http1ServerHandler extends SimpleChannelInboundHandler<HttpContextR
     }
 
     private long getActiveTime(Channel channel) {
-        return channel.attr(Constants.ATTR_CHANNEL_ACTIVE_TIME).get();
+        Long time = channel.attr(Constants.ATTR_CHANNEL_ACTIVE_TIME).get();
+        return null==time?System.currentTimeMillis():time;
     }
 
     @Override

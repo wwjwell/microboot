@@ -4,7 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http2.Http2CodecBuilder;
+import io.netty.handler.codec.http2.*;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
@@ -15,19 +15,26 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 public class Http2OrHttpHandler extends ApplicationProtocolNegotiationHandler {
     private ServerConfig serverConfig;
     private Http1ServerHandler http1ServerHandler;
-    private Http2ServerHandler http2ServerHandler;
 
-    protected Http2OrHttpHandler(ServerConfig serverConfig,Http1ServerHandler http1ServerHandler,Http2ServerHandler http2ServerHandler) {
+    protected Http2OrHttpHandler(ServerConfig serverConfig,Http1ServerHandler http1ServerHandler) {
         super(ApplicationProtocolNames.HTTP_1_1);
         this.serverConfig = serverConfig;
         this.http1ServerHandler = http1ServerHandler;
-        this.http2ServerHandler = http2ServerHandler;
     }
 
     @Override
     protected void configurePipeline(ChannelHandlerContext ctx, String protocol) throws Exception {
         if (ApplicationProtocolNames.HTTP_2.equals(protocol)) {
-            ctx.pipeline().addLast(new Http2CodecBuilder(true, http2ServerHandler).build());
+            DefaultHttp2Connection connection = new DefaultHttp2Connection(true);
+            InboundHttp2ToHttpAdapter listener = new InboundHttp2ToHttpAdapterBuilder(connection)
+                    .propagateSettings(true).validateHttpHeaders(false)
+                    .maxContentLength(serverConfig.getMaxLength()).build();
+            ctx.pipeline().addLast(new HttpToHttp2ConnectionHandlerBuilder()
+                    .frameListener(listener)
+                    // .frameLogger(TilesHttp2ToHttpHandler.logger)
+                    .connection(connection).build());
+
+            ctx.pipeline().addLast(http1ServerHandler);
             return;
         }
         if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {

@@ -4,7 +4,7 @@ import com.github.wwjwell.microboot.metrics.BytesMetricsHandler;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http2.Http2SecurityUtil;
+import io.netty.handler.codec.http2.*;
 import io.netty.handler.ssl.*;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.stream.ChunkedWriteHandler;
@@ -16,17 +16,15 @@ import org.slf4j.LoggerFactory;
  * Created by wwj on 2017/6/21.
  */
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
-    private Logger logger = LoggerFactory.getLogger(Http2ServerHandler.class);
+    private Logger logger = LoggerFactory.getLogger(HttpServerInitializer.class);
     private Http1ServerHandler http1ServerHandler;
-    private Http2ServerHandler http2ServerHandler;
     private SslContext sslCtx;
     private ServerConfig serverConfig;
 
-    public HttpServerInitializer(ServerConfig serverConfig, Http1ServerHandler http1ServerHandler,Http2ServerHandler http2ServerHandler) {
+    public HttpServerInitializer(ServerConfig serverConfig, Http1ServerHandler http1ServerHandler) {
         this.serverConfig = serverConfig;
         this.http1ServerHandler = http1ServerHandler;
-        this.http2ServerHandler = http2ServerHandler;
-        if (serverConfig.isOpenSSL()) {
+        if (!serverConfig.isOpenSSL()) {
             SslProvider provider = OpenSsl.isAlpnSupported() ? SslProvider.OPENSSL : SslProvider.JDK;
             try {
                 SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -53,7 +51,6 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     }
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-
         if (sslCtx != null) {
             configureSsl(ch);
         } else {
@@ -80,6 +77,8 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
      * Configure the pipeline for TLS NPN negotiation to HTTP/2.
      */
     private void configureSsl(SocketChannel ch) {
-        ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()), new Http2OrHttpHandler(serverConfig, http1ServerHandler, http2ServerHandler));
+        ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()));
+        ch.pipeline().addLast("microhttp-codec", new MicrobootHttpCodec(serverConfig));
+        ch.pipeline().addLast(new Http2OrHttpHandler(serverConfig, http1ServerHandler));
     }
 }
