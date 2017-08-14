@@ -78,7 +78,6 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
      */
     private void configureSsl(SocketChannel ch) {
         ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()));
-        ch.pipeline().addLast("microhttp-codec", new MicrobootHttpCodec(serverConfig));
         ch.pipeline().addLast(new Http2OrHttpHandler(serverConfig, http1ServerHandler));
     }
 }

@@ -33,7 +33,7 @@ public class Http2OrHttpHandler extends ApplicationProtocolNegotiationHandler {
                     .frameListener(listener)
                     // .frameLogger(TilesHttp2ToHttpHandler.logger)
                     .connection(connection).build());
-
+            ctx.pipeline().addLast("microhttp-codec", new MicrobootHttpCodec(serverConfig));
             ctx.pipeline().addLast(http1ServerHandler);
             return;
         }

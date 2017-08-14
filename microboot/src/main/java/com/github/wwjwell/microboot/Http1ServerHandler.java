@@ -11,6 +11,7 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http2.HttpConversionUtil;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,11 @@ public class Http1ServerHandler extends SimpleChannelInboundHandler<HttpContextR
             public void run() {
                 //转化为 api 能处理的request\response
                 HttpContextResponse response = new HttpContextResponse(request.getHttpVersion(), HttpResponseStatus.OK, getServerConfig().getCharset());
+                String streamId = request.getHeader(HttpConversionUtil.ExtensionHeaderNames.STREAM_ID.text());
+                if (null != streamId) {
+                    response.addHeader(HttpConversionUtil.ExtensionHeaderNames.STREAM_ID.text(), streamId);
+                }
+
                 try {
                     dispatcher.doService(request, response);
                 } catch (Exception e) {
@@ -107,7 +113,12 @@ public class Http1ServerHandler extends SimpleChannelInboundHandler<HttpContextR
     protected HttpContextRequest prepareHttpRequest(ChannelHandlerContext ctx, HttpContextRequest request){
         long reqId = genReqId();
         ctx.channel().attr(Constants.ATTR_REQ_ID).set(reqId);
-        int times = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get().decrementAndGet();
+        AtomicInteger timesAtomic = ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).get();
+        if (timesAtomic == null) {
+            timesAtomic = new AtomicInteger(1);
+            ctx.channel().attr(Constants.ATTR_HTTP_REQ_TIMES).set(timesAtomic);
+        }
+        int times = timesAtomic.get();
         boolean isKeepAlive = true;
         if(!isKeepAlive(request) ||
                 ( serverConfig.getMaxKeepAliveRequests() >= 0 && times <= 0)){
