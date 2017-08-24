@@ -20,7 +20,7 @@
         <property name="waitForTasksToCompleteOnShutdown" value="true" />
     </bean>
     <bean id="serverConfig" class="com.github.wwjwell.microboot.ServerConfig">
-        <property name="port" value="8443"/>
+        <property name="port" value="8080"/>
         <property name="openSSL" value="true"/>
         <property name="keyCertChainFilePath" value="/Users/wwj/work/client.crt"/>
         <property name="keyFilePath" value="/Users/wwj/work/client_key.pem"/>
