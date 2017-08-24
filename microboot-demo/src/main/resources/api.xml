@@ -21,9 +21,15 @@
     </bean>
     <bean id="serverConfig" class="com.github.wwjwell.microboot.ServerConfig">
         <property name="port" value="8080"/>
-        <property name="openSSL" value="true"/>
-        <property name="keyCertChainFilePath" value="/Users/wwj/work/client.crt"/>
-        <property name="keyFilePath" value="/Users/wwj/work/client_key.pem"/>
+        <!-- 配置SSL 默认支持http2.0 这4项 -->
+        <!--<property name="openSSL" value="true"/>-->
+        <!-- 证书 -->
+        <!--<property name="keyCertChainFilePath" value="/Users/wwj/work/server.crt"/>-->
+        <!-- 私钥pem格式 -->
+        <!--<property name="keyFilePath" value="/Users/wwj/work/server_key.pem"/>-->
+        <!-- 私钥密码 -->
+        <!--<property name="keyPassword" value="123456"/>-->
+
         <property name="maxLength" value="65536"/> <!-- 传输的报文过大，会报错 -->
         <property name="maxKeepAliveRequests" value="1000"/>  <!-- keep-alive 最大请求数 -->
         <property name="executor" ref="threadPoolTaskExecutor"/> <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
