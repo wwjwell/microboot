@@ -1,14 +1,13 @@
 package com.github.wwjwell.microboot;
 
-import com.github.wwjwell.microboot.http.HttpContextRequest;
-import com.github.wwjwell.microboot.http.HttpContextResponse;
-import com.github.wwjwell.microboot.http.HttpHeaderName;
-import com.github.wwjwell.microboot.http.MediaType;
+import com.github.wwjwell.microboot.http.*;
+import com.github.wwjwell.microboot.http.HttpVersion;
 import com.github.wwjwell.microboot.util.HttpUtils;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http2.HttpConversionUtil;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedStream;
 import org.slf4j.Logger;
@@ -42,7 +41,14 @@ public class MicrobootHttpCodec extends MessageToMessageCodec<FullHttpRequest, H
      */
     @Override
     protected void encode(ChannelHandlerContext ctx, HttpContextResponse response, List<Object> out) throws Exception {
-        DefaultHttpResponse httpResponse = new DefaultHttpResponse(response.getVersion(), response.getStatus());
+        io.netty.handler.codec.http.HttpVersion httpVersion = null;
+        if(response.getVersion() == HttpVersion.HTTP_2){
+            httpVersion = io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+        }else{
+            httpVersion = io.netty.handler.codec.http.HttpVersion.valueOf(response.getVersion().text());
+        }
+
+        DefaultHttpResponse httpResponse = new DefaultHttpResponse(httpVersion, response.getStatus());
         httpResponse.headers().add(response.headers());
         //out add header
         out.add(httpResponse);
@@ -76,7 +82,7 @@ public class MicrobootHttpCodec extends MessageToMessageCodec<FullHttpRequest, H
     @Override
     protected void decode(ChannelHandlerContext ctx, FullHttpRequest msg, List<Object> out) throws Exception {
         if (msg.decoderResult().isFailure()) {
-            DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+            DefaultFullHttpResponse response = new DefaultFullHttpResponse(io.netty.handler.codec.http.HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
             if (logger.isDebugEnabled()) {
                 logger.debug("illegal http,address={}", ctx.channel().remoteAddress());
             }
@@ -84,7 +90,13 @@ public class MicrobootHttpCodec extends MessageToMessageCodec<FullHttpRequest, H
             return;
         }
         //convert to request
-        HttpContextRequest request = new HttpContextRequest(msg.protocolVersion(), msg.headers(), serverConfig.getCharset());
+        HttpVersion version = HttpVersion.valueOf(msg.protocolVersion().text());
+        //HTTP 2.0
+        if(msg.headers().contains(HttpConversionUtil.ExtensionHeaderNames.STREAM_ID.text())){
+            version = HttpVersion.HTTP_2;
+        }
+
+        HttpContextRequest request = new HttpContextRequest(version, msg.headers(), serverConfig.getCharset());
         request.setTime(System.currentTimeMillis());
         request.setCharset(serverConfig.getCharset());
         request.setHttpMethod(msg.method().name().toUpperCase());

@@ -22,8 +22,8 @@
     <bean id="serverConfig" class="com.github.wwjwell.microboot.ServerConfig">
         <property name="port" value="8443"/>
         <property name="openSSL" value="true"/>
-        <property name="keyCertChainFilePath" value="/Users/wwj/work/local.crt"/>
-        <property name="keyFilePath" value="/Users/wwj/work/local.key"/>
+        <property name="keyCertChainFilePath" value="/Users/wwj/work/client.crt"/>
+        <property name="keyFilePath" value="/Users/wwj/work/client_key.pem"/>
         <property name="maxLength" value="65536"/> <!-- 传输的报文过大，会报错 -->
         <property name="maxKeepAliveRequests" value="1000"/>  <!-- keep-alive 最大请求数 -->
         <property name="executor" ref="threadPoolTaskExecutor"/> <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->

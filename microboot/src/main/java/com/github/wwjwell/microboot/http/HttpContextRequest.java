@@ -3,7 +3,6 @@ package com.github.wwjwell.microboot.http;
 
 import com.github.wwjwell.microboot.util.HttpUtils;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.FileUpload;
 

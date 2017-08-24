@@ -18,7 +18,7 @@ public class MicroSslContext {
      * preferenced over HTTP2_VERSION.
      */
     static final List<String> NEXT_PROTOCOL_VERSIONS =
-            Collections.unmodifiableList(Arrays.asList(ApplicationProtocolNames.HTTP_1_1, ApplicationProtocolNames.HTTP_2));
+            Collections.unmodifiableList(Arrays.asList(ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1));
 
     /*
      * These configs use ACCEPT due to limited support in OpenSSL.  Actual protocol enforcement is
