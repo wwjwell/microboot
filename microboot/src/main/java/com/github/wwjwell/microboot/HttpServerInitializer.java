@@ -1,58 +1,58 @@
 package com.github.wwjwell.microboot;
 
 import com.github.wwjwell.microboot.metrics.BytesMetricsHandler;
-import io.netty.channel.*;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http2.*;
-import io.netty.handler.ssl.*;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLException;
 
 /**
  * Created by wwj on 2017/6/21.
  */
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     private Logger logger = LoggerFactory.getLogger(HttpServerInitializer.class);
-    private Http1ServerHandler http1ServerHandler;
-    private SslContext sslCtx;
+    private HttpContextHandler http1ServerHandler;
+    private SslContext sslContext;
     private ServerConfig serverConfig;
 
-    public HttpServerInitializer(ServerConfig serverConfig, Http1ServerHandler http1ServerHandler) {
+    public HttpServerInitializer(ServerConfig serverConfig, HttpContextHandler http1ServerHandler) {
         this.serverConfig = serverConfig;
         this.http1ServerHandler = http1ServerHandler;
-        if (!serverConfig.isOpenSSL()) {
-            SslProvider provider = OpenSsl.isAlpnSupported() ? SslProvider.OPENSSL : SslProvider.JDK;
-            try {
-                SelfSignedCertificate ssc = new SelfSignedCertificate();
-                sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey())
-                        .sslProvider(provider)
-                /* NOTE: the cipher filter may not include all ciphers required by the HTTP/2 specification.
-                 * Please refer to the HTTP/2 specification for cipher requirements. */
-                        .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                        .applicationProtocolConfig(new ApplicationProtocolConfig(
-                                ApplicationProtocolConfig.Protocol.ALPN,
-                                // NO_ADVERTISE is currently the only mode supported by both OpenSsl and JDK providers.
-                                ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                                // ACCEPT is currently the only mode supported by both OpenSsl and JDK providers.
-                                ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                                ApplicationProtocolNames.HTTP_2,
-                                ApplicationProtocolNames.HTTP_1_1))
-                        .build();
-            } catch (Exception e) {
-                logger.warn("", e);
+        if (serverConfig.isOpenSSL()) {
+            if (null != serverConfig.getSslContext()) {
+                sslContext = serverConfig.getSslContext();
+            }else {
+                Assert.isTrue(serverConfig.getKeyCertChainFilePath() != null, "cert file should't be null");
+                Assert.isTrue(serverConfig.getKeyFilePath() != null, "private key file shouldn't be null");
+                SslContextBuilder sslContextBuilder = MicroSslContext.forServer(serverConfig.getKeyCertChainFilePath(), serverConfig.getKeyFilePath(), serverConfig.getKeyPassword(), serverConfig.getTrustCertCollectionFilePath());
+                sslContextBuilder.clientAuth(serverConfig.isSslClientAuth() ? ClientAuth.REQUIRE : ClientAuth.NONE);
+                try {
+                    sslContext = sslContextBuilder.build();
+                } catch (SSLException e) {
+                    logger.error("", e);
+                    throw new RuntimeException(e.getMessage());
+                }
             }
-        } else {
-            sslCtx = null;
         }
     }
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        if (sslCtx != null) {
-            configureSsl(ch);
+        if (null != sslContext) {
+            SSLEngine sslEngine = sslContext.newEngine(ch.alloc());
+            configureSsl(ch, new SslHandler(sslEngine));
         } else {
             configureClearText(ch);
         }
@@ -76,8 +76,8 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     /**
      * Configure the pipeline for TLS NPN negotiation to HTTP/2.
      */
-    private void configureSsl(SocketChannel ch) {
-        ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()));
-        ch.pipeline().addLast(new Http2OrHttpHandler(serverConfig, http1ServerHandler));
+    private void configureSsl(SocketChannel ch, SslHandler sslHandlere) {
+        ch.pipeline().addLast(sslHandlere);
+        ch.pipeline().addLast(new Http2OrHttp1Handler(serverConfig, http1ServerHandler));
     }
 }

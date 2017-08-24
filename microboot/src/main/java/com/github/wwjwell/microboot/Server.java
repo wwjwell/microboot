@@ -23,10 +23,9 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
     private Logger logger = LoggerFactory.getLogger(Server.class);
     private ServerConfig serverConfig;
     private ApplicationContext context;
-    private Http1ServerHandler http1ServerHandler;
+    private HttpContextHandler http1ServerHandler;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
-    private boolean ssl;
     private Class<? extends ServerChannel> socketChannelClass;
     /**
      * Http服务启动
@@ -84,9 +83,9 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
      */
     protected void initStrategies(ApplicationContext context) {
         try {
-            http1ServerHandler = context.getBean(Http1ServerHandler.class);
+            http1ServerHandler = context.getBean(HttpContextHandler.class);
         } catch (NoSuchBeanDefinitionException e) {
-            http1ServerHandler = context.getAutowireCapableBeanFactory().createBean(Http1ServerHandler.class);
+            http1ServerHandler = context.getAutowireCapableBeanFactory().createBean(HttpContextHandler.class);
             http1ServerHandler.setServerConfig(getServerConfig());
         }
     }

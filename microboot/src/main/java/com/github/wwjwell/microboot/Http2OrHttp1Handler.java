@@ -12,14 +12,14 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 /**
  * Created by wwj on 2017/8/3.
  */
-public class Http2OrHttpHandler extends ApplicationProtocolNegotiationHandler {
+public class Http2OrHttp1Handler extends ApplicationProtocolNegotiationHandler {
     private ServerConfig serverConfig;
-    private Http1ServerHandler http1ServerHandler;
+    private HttpContextHandler httpContextHandler;
 
-    protected Http2OrHttpHandler(ServerConfig serverConfig,Http1ServerHandler http1ServerHandler) {
+    protected Http2OrHttp1Handler(ServerConfig serverConfig, HttpContextHandler httpContextHandler) {
         super(ApplicationProtocolNames.HTTP_1_1);
         this.serverConfig = serverConfig;
-        this.http1ServerHandler = http1ServerHandler;
+        this.httpContextHandler = httpContextHandler;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class Http2OrHttpHandler extends ApplicationProtocolNegotiationHandler {
                     // .frameLogger(TilesHttp2ToHttpHandler.logger)
                     .connection(connection).build());
             ctx.pipeline().addLast("microhttp-codec", new MicrobootHttpCodec(serverConfig));
-            ctx.pipeline().addLast(http1ServerHandler);
+            ctx.pipeline().addLast(httpContextHandler);
             return;
         }
         if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
@@ -45,7 +45,7 @@ public class Http2OrHttpHandler extends ApplicationProtocolNegotiationHandler {
             ctx.pipeline().addLast("aggregator", new HttpObjectAggregator(serverConfig.getMaxLength()));
             ctx.pipeline().addLast("chunk", new ChunkedWriteHandler());
             ctx.pipeline().addLast("microhttp-codec", new MicrobootHttpCodec(serverConfig));
-            ctx.pipeline().addLast(http1ServerHandler);
+            ctx.pipeline().addLast(httpContextHandler);
             return;
         }
 

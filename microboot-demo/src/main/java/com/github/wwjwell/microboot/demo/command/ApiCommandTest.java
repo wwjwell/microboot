@@ -76,7 +76,8 @@ public class ApiCommandTest{
     @ApiMethod("download")
     public void download(HttpContextRequest request, HttpContextResponse response){
         try {
-            File file = new File("/Users/wwj/test.png");
+            File file = new File("/Users/wwj/test.txt");
+            response.addHeader("content-type", "text/html");
             FileInputStream fileInputStream = new FileInputStream(file);
             response.setFile(file);
 

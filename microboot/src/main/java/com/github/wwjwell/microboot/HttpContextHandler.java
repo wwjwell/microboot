@@ -27,8 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * HTTP handle
  */
 @Sharable
-public class Http1ServerHandler extends SimpleChannelInboundHandler<HttpContextRequest> implements ApplicationContextAware,InitializingBean{
-    private Logger logger = LoggerFactory.getLogger(Http1ServerHandler.class);
+public class HttpContextHandler extends SimpleChannelInboundHandler<HttpContextRequest> implements ApplicationContextAware,InitializingBean{
+    private Logger logger = LoggerFactory.getLogger(HttpContextHandler.class);
     private ServerConfig serverConfig;
     private ApplicationContext context;
     private ApiDispatcher dispatcher;
