@@ -81,6 +81,28 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
         <property name="serverConfig" ref="serverConfig"/> <!-- set port=8080 -->
     </bean>
 ```
+### SSL 默认开启HTTP2.0
+```
+       <bean id="serverConfig" class="com.github.wwjwell.microboot.ServerConfig">
+        <property name="port" value="8080"/>
+        <property name="maxLength" value="65536"/> <!-- 传输的报文过大，会报错 -->
+        <property name="maxKeepAliveRequests" value="1000"/>  <!-- keep-alive 最大请求数 -->
+        <property name="executor" ref="threadPoolTaskExecutor"/> <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
+        <!-- 打开调试开关 ，生产环境请关闭 -->
+        <property name="openConnectCostLogger" value="true"/>
+        <property name="openMetricsLogger" value="true"/>
+
+        <!-- 配置SSL 默认支持http2.0 这4项 -->
+        <property name="openSSL" value="true"/>
+        <!-- 证书 -->
+        <property name="keyCertChainFilePath" value="/Users/wwj/work/server.crt"/>
+        <!-- 私钥pem格式 -->
+        <property name="keyFilePath" value="/Users/wwj/work/server_key.pem"/>
+        <!-- 私钥密码 -->
+        <property name="keyPassword" value="123456"/>
+    </bean>
+
+```
 
 ### 输入helloworld
 ```
@@ -157,4 +179,5 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
 ```
     <bean class="com.github.wwjwell.microboot.mvc.ApiDispatcher"/>
 ```
+
 具体用法参考microboot-demo的 com.github.wwjwell.microboot.demo.command.BatchCommndTest类
