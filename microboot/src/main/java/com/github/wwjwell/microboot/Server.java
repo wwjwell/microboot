@@ -71,7 +71,7 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
             } catch (Exception e) {
                 logger.error("", e);
             }
-            logger.info("server shutdown finish ,cost=" + (System.currentTimeMillis() - time) + "ms");
+            logger.info("server shutdown finish, cost=" + (System.currentTimeMillis() - time) + "ms");
             shutdown = true;
         }
     }
