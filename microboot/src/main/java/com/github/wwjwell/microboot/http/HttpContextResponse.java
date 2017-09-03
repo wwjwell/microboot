@@ -2,7 +2,10 @@ package com.github.wwjwell.microboot.http;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 
@@ -25,7 +28,7 @@ public class HttpContextResponse {
         this.version = version;
         this.status = status;
         this.charset = charset;
-        headers = new DefaultHttpHeaders(true);
+        this.headers = new DefaultHttpHeaders(true);
     }
 
     public HttpVersion getVersion() {
@@ -101,7 +104,10 @@ public class HttpContextResponse {
         if (null == content) {
             return null;
         }
-        return content.toString(charset);
+        content.markReaderIndex();
+        String body = content.toString(charset);
+        content.resetReaderIndex();
+        return body;
     }
 
     public ByteBuf content(){
@@ -116,8 +122,18 @@ public class HttpContextResponse {
         if(null != bytes){
             if (null == content) {
                 content = Unpooled.buffer(bytes.length);
+            }else {
+                content.clear();
             }
-            content.clear();
+            content.writeBytes(bytes);
+        }
+    }
+
+    public void writeToContent(byte[] bytes) {
+        if(null != bytes){
+            if (null == content) {
+                content = Unpooled.buffer(bytes.length);
+            }
             content.writeBytes(bytes);
         }
     }

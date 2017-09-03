@@ -23,7 +23,7 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
     private Logger logger = LoggerFactory.getLogger(Server.class);
     private ServerConfig serverConfig;
     private ApplicationContext context;
-    private HttpSimpleChannelHandle httpSimpleChannelHandle;
+    private HttpContextHandler http1ServerHandler;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private Class<? extends ServerChannel> socketChannelClass;
@@ -37,7 +37,7 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(socketChannelClass)
-                    .childHandler(new HttpChannelInitializer(serverConfig,httpSimpleChannelHandle))
+                    .childHandler(new HttpServerInitializer(serverConfig, http1ServerHandler))
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.TCP_NODELAY,true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -71,7 +71,7 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
             } catch (Exception e) {
                 logger.error("", e);
             }
-            logger.info("server shutdown finish ,cost=" + (System.currentTimeMillis() - time) + "ms");
+            logger.info("server shutdown finish, cost=" + (System.currentTimeMillis() - time) + "ms");
             shutdown = true;
         }
     }
@@ -83,10 +83,10 @@ public class Server implements ApplicationContextAware,InitializingBean,Disposab
      */
     protected void initStrategies(ApplicationContext context) {
         try {
-            httpSimpleChannelHandle = context.getBean(HttpSimpleChannelHandle.class);
+            http1ServerHandler = context.getBean(HttpContextHandler.class);
         } catch (NoSuchBeanDefinitionException e) {
-            httpSimpleChannelHandle = context.getAutowireCapableBeanFactory().createBean(HttpSimpleChannelHandle.class);
-            httpSimpleChannelHandle.setServerConfig(getServerConfig());
+            http1ServerHandler = context.getAutowireCapableBeanFactory().createBean(HttpContextHandler.class);
+            http1ServerHandler.setServerConfig(getServerConfig());
         }
     }
 

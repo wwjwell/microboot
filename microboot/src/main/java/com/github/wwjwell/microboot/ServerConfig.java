@@ -1,9 +1,8 @@
 package com.github.wwjwell.microboot;
 
-import com.github.wwjwell.microboot.constants.Constants;
 import io.netty.channel.epoll.Epoll;
+import io.netty.handler.ssl.SslContext;
 
-import javax.net.ssl.SSLEngine;
 import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 
@@ -49,20 +48,28 @@ public class ServerConfig {
     private int maxKeepAliveRequests = 100; //默认为100，也就是在keepAliveTimeout时间内，如果使用次数超过100，则会关闭掉该连接。设置为-1，则代表不会关闭连接。在关闭后，会在返回的header上面加上Connection:close 。
     private int maxLength = 1024 * 1024;      //http报文最大长度 ,default  1M
     private int chunkSize = 8192; //HTTP chunk size
+    /*
+     * ssl config
+     */
     private boolean openSSL = false;    //启用SSL
-    private SSLEngine sslEngine = null; //ssl
+    private SslContext sslContext;
+    private String keyCertChainFilePath;    //an X.509 certificate chain file in PEM format;
+    private String keyFilePath;     // a PKCS#8 private key file in PEM format
+    private String keyPassword;     //the password of the keyFilePath, or null if it's not
+    private String trustCertCollectionFilePath; // Trusted certificates for verifying the remote endpoint's certificate. The file shouldcontain an X.509 certificate collection in PEM format. {@code null} uses the system default.
+    private boolean sslClientAuth = false;  //开启客户端验证
     /**
      * compressionLevel (0-9),1 yields the fastest compression and 9 yields the
      * best compression.  0 means no compression.  The default
      * compression level is 6
      */
-    private boolean openCompression = false;    //启用压缩
+    private boolean openCompression = true;    //默认启用压缩
     private int compressionLevel = 6;
     private int bossThreadNum;          //netty boss Thread
     private int workerThreadNum;        //netty work thread
     private boolean openMetricsLogger = false; //流量统计
     private boolean openConnectCostLogger = false; //连接耗时日志
-    private String headerServer = Constants.SERVER;
+    private String headerServer = "microboot";
     private Executor executor;
 
     public boolean epollAvailable(){
@@ -228,12 +235,60 @@ public class ServerConfig {
         this.openSSL = openSSL;
     }
 
-    public SSLEngine getSslEngine() {
-        return sslEngine;
+    public String getKeyCertChainFilePath() {
+        return keyCertChainFilePath;
     }
 
-    public void setSslEngine(SSLEngine sslEngine) {
-        this.sslEngine = sslEngine;
+    public void setKeyCertChainFilePath(String keyCertChainFilePath) {
+        this.keyCertChainFilePath = keyCertChainFilePath;
+    }
+
+    public String getKeyFilePath() {
+        return keyFilePath;
+    }
+
+    public void setKeyFilePath(String keyFilePath) {
+        this.keyFilePath = keyFilePath;
+    }
+
+    public String getKeyPassword() {
+        return keyPassword;
+    }
+
+    public void setKeyPassword(String keyPassword) {
+        this.keyPassword = keyPassword;
+    }
+
+    public static ServerConfig getDefaultServerConfig() {
+        return defaultServerConfig;
+    }
+
+    public static void setDefaultServerConfig(ServerConfig defaultServerConfig) {
+        ServerConfig.defaultServerConfig = defaultServerConfig;
+    }
+
+    public SslContext getSslContext() {
+        return sslContext;
+    }
+
+    public void setSslContext(SslContext sslContext) {
+        this.sslContext = sslContext;
+    }
+
+    public String getTrustCertCollectionFilePath() {
+        return trustCertCollectionFilePath;
+    }
+
+    public void setTrustCertCollectionFilePath(String trustCertCollectionFilePath) {
+        this.trustCertCollectionFilePath = trustCertCollectionFilePath;
+    }
+
+    public boolean isSslClientAuth() {
+        return sslClientAuth;
+    }
+
+    public void setSslClientAuth(boolean sslClientAuth) {
+        this.sslClientAuth = sslClientAuth;
     }
 
     public boolean isOpenCompression() {

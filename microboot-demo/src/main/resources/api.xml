@@ -13,10 +13,34 @@
     <bean name="serverConf" class="com.github.wwjwell.microboot.ServerConfig">
         <property name="maxKeepAliveRequests" value="2"/>
     </bean>
-    <bean name="server" class="com.github.wwjwell.microboot.Server">
-        <property name="serverConfig" ref="serverConf"/>
+    <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
+    <bean id="threadPoolTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="8" />
+        <property name="threadNamePrefix" value="microboot-task-"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="true" />
     </bean>
+    <bean id="serverConfig" class="com.github.wwjwell.microboot.ServerConfig">
+        <property name="port" value="8080"/>
+        <!-- 配置SSL 默认支持http2.0 这4项 -->
+        <!--<property name="openSSL" value="true"/>-->
+        <!-- 证书 -->
+        <!--<property name="keyCertChainFilePath" value="/Users/wwj/work/server.crt"/>-->
+        <!-- 私钥pem格式 -->
+        <!--<property name="keyFilePath" value="/Users/wwj/work/server_key.pem"/>-->
+        <!-- 私钥密码 -->
+        <!--<property name="keyPassword" value="123456"/>-->
 
+        <property name="maxLength" value="65536"/> <!-- 传输的报文过大，会报错 -->
+        <property name="maxKeepAliveRequests" value="1000"/>  <!-- keep-alive 最大请求数 -->
+        <property name="executor" ref="threadPoolTaskExecutor"/> <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
+        <!-- 打开调试开关 ，生产环境请关闭 -->
+        <property name="openConnectCostLogger" value="true"/>
+        <property name="openMetricsLogger" value="true"/>
+    </bean>
+    <!-- config server -->
+    <bean name="server" class="com.github.wwjwell.microboot.Server">
+        <property name="serverConfig" ref="serverConfig"/> <!-- set port=8080 -->
+    </bean>
     <!-- jsonView default -->
     <bean class="com.github.wwjwell.microboot.mvc.resolver.view.JsonViewResolver">
         <property name="viewName" value="jsonView"/>

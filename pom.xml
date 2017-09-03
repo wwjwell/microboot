@@ -12,7 +12,7 @@
     <name>microboot-parent</name>
     <groupId>com.github.wwjwell</groupId>
     <artifactId>microboot-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.0-SNAPSHOT</version>
     <description>http server not follow J2EE using Netty</description>
 
     <modules>

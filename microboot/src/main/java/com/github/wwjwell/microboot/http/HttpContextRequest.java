@@ -2,9 +2,7 @@ package com.github.wwjwell.microboot.http;
 
 
 import com.github.wwjwell.microboot.util.HttpUtils;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.FileUpload;
 
@@ -29,31 +27,19 @@ public class HttpContextRequest implements Serializable {
     private Map<String,FileUpload> requestFiles;
     private String body;
     private Charset charset;
-    private FullHttpRequest request;    //Base request
     private Map<String,Cookie> cookies; //request cookies
     private Map<String,Object> attachment;
 
-    private HttpContextRequest(){
+    public HttpContextRequest(){
     }
 
-    public HttpContextRequest(FullHttpRequest request,Charset charset) {
+    public HttpContextRequest(HttpVersion httpVersion, HttpHeaders httpHeaders, Charset charset) {
         this.time = System.currentTimeMillis();
-        this.request = request;
         this.charset = charset;
-        this.headers = request.headers();
-        this.httpVersion = request.protocolVersion();
-        this.httpMethod = request.method().name().toUpperCase();
-        this.requestUrl = request.uri();
-        if(requestUrl!=null) {
-            int idx = requestUrl.indexOf("?");
-            if (idx > 0) {
-                requestUrl = requestUrl.substring(0, idx);
-            }
-        }
+        this.headers = httpHeaders;
+        this.httpVersion = httpVersion;
         requestUrl = HttpUtils.joinOptimizePath(requestUrl);
         this.getBody();
-        HttpUtils.fillParamsMap(request, this, charset);     //init http params
-        HttpUtils.fillCookies(request, this);      //init http cookie
     }
 
     public HttpVersion getHttpVersion() {
@@ -70,6 +56,14 @@ public class HttpContextRequest implements Serializable {
             return values.get(0);
         }
         return null;
+    }
+
+    public void setCharset(Charset charset) {
+        this.charset = charset;
+    }
+
+    public Charset getCharset() {
+        return charset;
     }
 
     public void addParameter(String name, String value) {
@@ -146,14 +140,6 @@ public class HttpContextRequest implements Serializable {
         return null;
     }
 
-    public FullHttpRequest getRequest() {
-        return request;
-    }
-
-    public void setRequest(FullHttpRequest request) {
-        this.request = request;
-    }
-
     public Map<String, FileUpload> getRequestFiles() {
         return requestFiles;
     }
@@ -196,25 +182,6 @@ public class HttpContextRequest implements Serializable {
     }
 
     public String getBody() {
-        if (null == body) {
-            synchronized (this) {
-                if (null == body && null != request.content()) {
-                    request.content().markReaderIndex();
-                    if (null != request.content()) {
-                        int len = request.content().readableBytes();
-                        if (len > 0) {
-                            byte[] bytes = new byte[len];
-                            request.content().readBytes(bytes);
-                            body = new String(bytes, charset);
-                        }
-                    }
-                    request.content().resetReaderIndex();
-                }
-                if (body == null) {
-                    body = "";
-                }
-            }
-        }
         return body;
     }
     public void setBody(String body) {

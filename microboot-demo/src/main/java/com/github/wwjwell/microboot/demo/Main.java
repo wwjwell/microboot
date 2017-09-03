@@ -11,7 +11,7 @@ public class Main {
     private static volatile boolean running = true;
 
     public static void main(String[] args) {
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:api.xml");
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:api.xml");
         final Server server = context.getBean(Server.class);
 
         Thread thread = new Thread(new Runnable() {

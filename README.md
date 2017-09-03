@@ -1,11 +1,12 @@
 # microboot 是什么，能做什么？
 ### microboot是什么
-microboot 是基于Netty 开发的一个Http服务框架，自身提供http server功能，jar包方式启动，使用方式与架构与SpringMVC极其相似，microboot没有遵循j2ee规范，非常轻量级，并且高性能。
+microboot 是基于Netty 开发的一个Http服务框架，自身提供http server功能，jar包方式启动，使用方式与架构与SpringMVC极其相似，microboot没有遵循java web规范，非常轻量级，并且高性能。
 ### microboot能做什么
 microboot天生是为了后端纯接口服务做得框架，具有开发、部署简单，高性能并且稳定，支持所有http请求方式，支持多视图，并且可以根据自己的要求自定义ViewResolver返回自己想要的结果，目前服务只String、JSONView 两种返回。
 
 # microboot 优缺点
 ### 优点
+- 支持HTTP2.0
 - 超级轻量级的框架
 - 性能优越，稳定，尤其对于非常暴增的流量，能够稳定支撑
 - 使用简单，上手快，只要学过springMVC 基本没有任何学习瓶颈
@@ -15,7 +16,7 @@ microboot天生是为了后端纯接口服务做得框架，具有开发、部�
 - 许多后端接口使用的特性支持，如多接口合并
 - 等等
 ### 缺点
-- 由于不支持j2ee规范，所以不能支持jsp（绝对不会支持），目前还不支持静态资源(作者还没写，以后会支持)，freemark等模板语言不支持(作者还没有写，可以自己处理直接返回String)
+- 由于不支持java web规范，所以不能支持jsp（绝对不会支持），目前还不支持静态资源(作者还没写，以后会支持)，freemark等模板语言不支持(作者还没有写，可以自己处理直接返回String)
 - 不是标准，非权威
 
 # microboot设计思想
@@ -55,18 +56,52 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
 ```
 ### spring 配置 
 * 可参照 microboot-demo/src/main/resources/api.xml
-```
+``` 
     <context:component-scan base-package="com.github.wwjwell.microboot.demo.**">
         <!-- 扫描ApiCommand注解 -->
-        <context:include-filter type="annotation" expression="ApiCommand"/>
+        <context:include-filter type="annotation" expression="com.github.wwjwell.microboot.mvc.annotation.ApiCommand"/>
     </context:component-scan>
-    <bean name="server" class="ServerConfig">
-        <property name="port" value="8080"/> <!-- set port=8080 -->
-    </bean>    
+    <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
+    <bean id="threadPoolTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="8" />
+        <property name="threadNamePrefix" value="microboot-task-"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="true" />
+    </bean>
+    <bean id="serverConfig" class="com.github.wwjwell.microboot.ServerConfig">
+        <property name="port" value="8080"/>
+        <property name="maxLength" value="65536"/> <!-- 传输的报文过大，会报错 -->
+        <property name="maxKeepAliveRequests" value="1000"/>  <!-- keep-alive 最大请求数 -->
+        <property name="executor" ref="threadPoolTaskExecutor"/> <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
+        <!-- 打开调试开关 ，生产环境请关闭 -->
+        <property name="openConnectCostLogger" value="true"/>
+        <property name="openMetricsLogger" value="true"/>
+    </bean>
     <!-- config server -->
-    <bean name="server" class="Server">
+    <bean name="server" class="com.github.wwjwell.microboot.Server">
         <property name="serverConfig" ref="serverConfig"/> <!-- set port=8080 -->
     </bean>
+```
+### SSL 默认开启HTTP2.0
+```
+       <bean id="serverConfig" class="com.github.wwjwell.microboot.ServerConfig">
+        <property name="port" value="8080"/>
+        <property name="maxLength" value="65536"/> <!-- 传输的报文过大，会报错 -->
+        <property name="maxKeepAliveRequests" value="1000"/>  <!-- keep-alive 最大请求数 -->
+        <property name="executor" ref="threadPoolTaskExecutor"/> <!--追求高性能，需要单独设置适合自己业务逻辑的线程池-->
+        <!-- 打开调试开关 ，生产环境请关闭 -->
+        <property name="openConnectCostLogger" value="true"/>
+        <property name="openMetricsLogger" value="true"/>
+
+        <!-- 配置SSL 默认支持http2.0 这4项 -->
+        <property name="openSSL" value="true"/>
+        <!-- 证书 -->
+        <property name="keyCertChainFilePath" value="/Users/wwj/work/server.crt"/>
+        <!-- 私钥pem格式 -->
+        <property name="keyFilePath" value="/Users/wwj/work/server_key.pem"/>
+        <!-- 私钥密码 -->
+        <property name="keyPassword" value="123456"/>
+    </bean>
+
 ```
 
 ### 输入helloworld
@@ -97,7 +132,7 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
         }    
     }
     
-    curl -d 'name=tomcat&id=100' http://localhost:8080/json/test   
+    curl -d 'name=tomcat&id=100' 'http://localhost:8080/json/test'   
     #输出 {"name":"tomcat","id":100}
 ```
 ### 更多例子和用法
@@ -108,7 +143,7 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
   增加拦截器，需要在spring配置文件中显示调用
 
 ```
-  <bean class="TestInterceptor">  
+  <bean class="com.github.wwjwell.microboot.demo.interceptor.TestInterceptor">  
       <property name="order" value="1"/>
   </bean>
     
@@ -137,10 +172,12 @@ microboot强依赖于netty 、jackson、slf4j、spring，需要你在项目中�
     }
 ```
 
-# 多接口合并
-
+# 接口合并
+    暴露内部doProcess方法，可以操控任意一个或多个ApiMethod的返回。可以比较轻易的获取改方法返回，通常用于接口合并，减少请求交互次数
+    BatchCommandTest例子：APP需要请求/t1,/t2 接口，可以直接请求/batch，batch根据约定可以组装t1,t2的返回值
 * 设置spring配置文件 需要增加一个设置，获取apiDispatcher内部处理类，调用doProcess方法
 ```
-    <bean class="ApiDispatcher"/>
+    <bean class="com.github.wwjwell.microboot.mvc.ApiDispatcher"/>
 ```
-具体用法参考microboot-demo的 BatchCommndTest类
+
+具体用法参考microboot-demo的 com.github.wwjwell.microboot.demo.command.BatchCommndTest类

@@ -5,6 +5,7 @@ import com.github.wwjwell.microboot.http.HttpContextRequest;
 import com.github.wwjwell.microboot.http.HttpContextResponse;
 import com.github.wwjwell.microboot.mvc.ModelAndView;
 import com.github.wwjwell.microboot.mvc.annotation.*;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -68,11 +69,15 @@ public class ApiCommandTest{
         return param.customer;
     }
 
-
+    @ApiMethod("void")
+    public void voidm(HttpContextRequest request, HttpContextResponse response) {
+        response.setStatus(HttpResponseStatus.METHOD_NOT_ALLOWED);
+    }
     @ApiMethod("download")
     public void download(HttpContextRequest request, HttpContextResponse response){
         try {
-            File file = new File("/Users/wwj/test.png");
+            File file = new File("/Users/wwj/test.txt");
+            response.addHeader("content-type", "text/html");
             FileInputStream fileInputStream = new FileInputStream(file);
             response.setFile(file);
 
