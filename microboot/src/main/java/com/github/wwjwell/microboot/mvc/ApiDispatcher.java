@@ -313,6 +313,7 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
         return apiMethodMapping;
     }
     private boolean checkCache(){
+        //TODO 超过之后需要转化为LURCache
         return cachePathMap.size()<50000;
     }
 
