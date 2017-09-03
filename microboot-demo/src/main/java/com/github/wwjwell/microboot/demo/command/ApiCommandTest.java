@@ -19,7 +19,7 @@ import java.util.Map;
 @ApiCommand
 public class ApiCommandTest{
     @ApiMethod("/t1")
-    public ModelAndView test1(@ApiParam("name")String name, @ApiParam("age")int age){
+    public ModelAndView test1(@ApiParam("name")String name, @ApiParam("age")int age,HttpContextResponse response){
 
         ModelAndView mv = new ModelAndView("jsonView");
         Map<String, Object> res = new HashMap<String, Object>();

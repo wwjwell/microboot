@@ -285,29 +285,28 @@ public class ApiDispatcher implements ApplicationContextAware,InitializingBean {
      * findApiMethodMapping from cache or create new when first init
      */
     public ApiMethodMapping findApiMethodMapping(String url, ApiMethod.HttpMethod requestMethod) {
-        Map<ApiMethod.HttpMethod, ApiMethodMapping> map = cachePathMap.get(url);
+        Map<ApiMethod.HttpMethod, ApiMethodMapping> mapping = cachePathMap.get(url);
         ApiMethodMapping apiMethodMapping = null;
-        if (null == map) {
-            synchronized (cachePathMap) {
-                map = cachePathMap.get(url);
-                if (null == map) {
-                    for (Map.Entry<String, Map<ApiMethod.HttpMethod, ApiMethodMapping>> entry : commandMap.entrySet()) {
-                        if(matcher.match(entry.getKey(), url)) {
-                            map = entry.getValue();
-                            if(checkCache()) {
-                                cachePathMap.put(url, map);
-                            }
-                            break;
-                        }
+        //删除锁 synchronized, 并发是幂等的，加锁没有任何意义
+        //See https://github.com/wwjwell/microboot/issues/4
+        //
+        if (null == mapping) {
+            for (Map.Entry<String, Map<ApiMethod.HttpMethod, ApiMethodMapping>> entry : commandMap.entrySet()) {
+                if(matcher.match(entry.getKey(), url)) {
+                    mapping = entry.getValue();
+                    if(checkCache()) {
+                        cachePathMap.put(url, mapping);
                     }
+                    break;
                 }
             }
         }
 
-        if(null != map){
-            apiMethodMapping = map.get(requestMethod);
+        if(null != mapping){
+            //restful comp
+            apiMethodMapping = mapping.get(requestMethod);
             if(null == apiMethodMapping && requestMethod != ApiMethod.HttpMethod.ALL) {
-                apiMethodMapping = map.get(ApiMethod.HttpMethod.ALL);
+                apiMethodMapping = mapping.get(ApiMethod.HttpMethod.ALL);
             }
         }
 
