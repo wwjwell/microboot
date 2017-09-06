@@ -21,7 +21,7 @@ microboot天生是为了后端纯接口服务做得框架，具有开发、部�
 
 # microboot设计思想
 microboot设计思想源于springMVC，摒弃J2EE繁杂的规范，更加纯粹的进行HTTP编程，不依赖于任何第三方容器，运用高性能的Netty框架做server ，以及netty的线程模型来处理业务。一旦你使用了microboot，或许你再也不想用tomcat做你的容器了。
-TIPS:下图是增加HTTP2.0功能之前的架构，HttpSimpleChannelHandler变更为多个Handler，主要是为了支持Http2.0，后面架构不变
+    TIPS:下图是增加HTTP2.0功能之前的架构，HttpSimpleChannelHandler变更为多个Handler，主要是为了支持Http2.0，后面架构不变
 - ![image](https://github.com/wwjwell/microboot/raw/master/docs/microboot.png)
 
 # microboot依赖情况
